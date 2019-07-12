@@ -2,6 +2,7 @@ using HomotopyContinuation, DynamicPolynomials
 using LinearAlgebra
 using PyPlot
 using DelimitedFiles
+using Printf
 
 include("ellipse.jl")
 
@@ -40,7 +41,8 @@ result_p = solve(F_p)
 # record the solutions
 S_p0 = solutions(result_p)
 num_sol_start_system = length(S_p0)
-println("No. of real solutions for the starting systems: ", num_sol_start_system)
+
+@printf("Starting systems: no. of real solutions = %d\n", num_sol_start_system)
 
 #Construct the PathTracker
 tracker = pathtracker(F; parameters=p, generic_parameters=p0)
@@ -142,10 +144,6 @@ function rand_draw_velocity(x)
   return U_x * coeff
 end
 
-# initial state
-x0 = [3.0, 0.0]
-v0 = [0.0, 1.0]
-
 # total number of samples 
 N = 50000
 
@@ -153,22 +151,38 @@ N = 50000
 sample_data = [zeros(2 * d) for i in 1:N]
 forward_success_counter = 0
 backward_success_counter = 0
+stat_success_counter = 0
+
+# upper bound of solution number, let us assume there are at most 10 solutions
+max_no_sol = 10
+stat_num_of_solution_forward = zeros(max_no_sol+1)
+stat_num_of_solution_backward = zeros(max_no_sol+1)
 
 # count the runtime 
 @time begin
 # the main loop 
 for i in 1:N
-  global x0, v0, forward_success_counter, backward_success_counter
+  global x0, v0, forward_success_counter, backward_success_counter, stat_success_counter, stat_num_of_solution_forward, stat_num_of_solution_backward
   # first of all, randomly update the velocity 
   v0 = rand_draw_velocity(x0)
   # save the current state
   sample_data[i] = vcat(x0, v0)
   # compute proposal states
   n, j, x1, v1 = forward_rattle(x0, v0, step_size)
+  if n <= max_no_sol 
+    stat_num_of_solution_forward[n+1] += 1
+  else 
+    @printf("Warning: No. of solutions in forward rattle (=%d) is larger than upper bound (=%d)!", n, max_no_sol)
+  end
   if n > 0 # if one solution has been found, do backward check
     forward_success_counter += 1 
     # reverse the velocity, and do backward check
     found_flag, n_back, j_back = backward_check(x1, -v1, x0, -v0, step_size)
+    if n_back <= max_no_sol 
+      stat_num_of_solution_backward[n_back+1] += 1
+    else 
+      @printf("Warning: No. of solutions in backward check (=%d) is larger than upper bound (=%d)!", n_back, max_no_sol)
+    end
     if found_flag == 1 # if the backward check is passed 
       backward_success_counter += 1
       h = energy(x0, v0) 
@@ -177,6 +191,7 @@ for i in 1:N
       mh_rate = min(1, exp(h - h_1) * n / n_back)
       r = rand()
       if r < mh_rate # accept the proposal
+        stat_success_counter += 1
         x0 = x1
         v0 = v1
       	continue
@@ -190,7 +205,24 @@ end
 # time end
 end
 
-println("counters: ", forward_success_counter, ' ', backward_success_counter)
+
+# print statistics of the computation
+
+@printf("\nforward_success_counter = %d\nbackward_success_counter = %d\naverage MH rate = %.3f\n", forward_success_counter, backward_success_counter, stat_success_counter * 1.0 / N)
+
+println("\nNo. of solutions in forward rattle")
+for i in 1:(max_no_sol+1)
+  if stat_num_of_solution_forward[i] > 0
+    @printf("%d solutions: %d\n", i-1, stat_num_of_solution_forward[i])
+  end
+end
+
+println("\nNo. of solutions in backward check")
+for i in 1:(max_no_sol+1)
+  if stat_num_of_solution_backward[i] > 0
+    @printf("%d solutions: %d\n", i-1, stat_num_of_solution_backward[i])
+  end
+end
 
 # write the sampled states to the file
 writedlm("./data/data.txt", sample_data)

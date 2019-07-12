@@ -11,6 +11,10 @@ k = 1
 c = 3
 c2 = c * c
 
+# initial state
+x0 = [3.0, 0.0]
+v0 = [0.0, 1.0]
+
 # potential in the target distribution
 function V(x)
   return 0.5 * x[1] * x[1]
@@ -36,6 +40,6 @@ end
 # equations of the Lagrange multipliers, p contains parameters, lam is the unknown multipliers
 F = [(p[1] + p[d + 1] * lam[1])^2  / c2 + (p[2] + p[d+2] * lam[1])^2 - 1.0]
 
-#p0 = [3.0,0.0,1.0,1.0]
+p0 = [3.0,0.0,1.0,1.0]
 # parameters for the starting system
-p0 = [2.9,-0.6,0.02,-0.18]
+#p0 = [2.9,-0.6,0.02,-0.18]
