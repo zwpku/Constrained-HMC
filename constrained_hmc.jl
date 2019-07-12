@@ -33,14 +33,6 @@ function energy(x,v)
   return V(x) + norm(v) * 0.5
 end
 
-@polyvar lam[1:k] y z p[1:(2 * d)] 
-
-# equations of the Lagrange multipliers, p contains parameters, lam is the unknown multipliers
-F = [(p[1] + p[d + 1] * lam[1])^2  / c2 + (p[2] + p[d+2] * lam[1])^2 - 1.0]
-
-#p0 = [3.0,0.0,1.0,1.0]
-# parameters for the starting system
-p0 = [2.9,-0.6,0.02,-0.18]
 F_p = subs(F, p => p0)
 # Compute all solutions for F_p, the starting system
 result_p = solve(F_p)
