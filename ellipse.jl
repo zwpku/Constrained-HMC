@@ -1,6 +1,6 @@
 # *********
 # This file specifies the model. 
-# It defines functions related to ellipse and contains the parameters involved.
+# It defines functions related to ellipse and contains the parameters in the system.
 # *********
 
 # the reaction coordniate map \xi: \mathbb{R}^d -> \mathbb{R}^k
@@ -22,7 +22,8 @@ end
 
 # gradient of the potential V(x)
 function grad_V(x)
-  return [x[1], 0]
+  return [x[1], 0.0]
+#  return [0.0, 0.0]
 end
 
 # the ith component \xi_i of the map \xi
@@ -40,6 +41,6 @@ end
 # equations of the Lagrange multipliers, p contains parameters, lam is the unknown multipliers
 F = [(p[1] + p[d + 1] * lam[1])^2  / c2 + (p[2] + p[d+2] * lam[1])^2 - 1.0]
 
-p0 = [3.0,0.0,1.0,1.0]
 # parameters for the starting system
-#p0 = [2.9,-0.6,0.02,-0.18]
+#p0 = [1.0,-1.0,1.0,0.2]
+p0 = [2.9,-0.6,0.02,-0.18]

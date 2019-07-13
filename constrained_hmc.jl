@@ -7,13 +7,17 @@ using Printf
 include("ellipse.jl")
 
 # the stepsize \tau used in the proposal scheme
-step_size = 0.2
+step_size = 0.5
 
 # check the forward scheme and print information, if the flag equals 1.
 check_rattle_flag = 1
 # tolerance error
 check_tol = 1e-6
 backward_check_tol = 1e-6
+new_sol_tol = 1e-6
+
+# the code will be slower, without PathTracking
+path_tracking_flag = 1
 
 # \xi: a k-dimensional vector
 function xi(x)
@@ -31,24 +35,28 @@ end
 
 # Hamiltonian energy 
 function energy(x,v)
-  return V(x) + norm(v) * 0.5
+  return V(x) + dot(v,v) * 0.5
 end
 
-F_p = subs(F, p => p0)
-# Compute all solutions for F_p, the starting system
-result_p = solve(F_p)
+# prepare the start system
+if path_tracking_flag == 1
+  F_p = subs(F, p => p0)
+  # Compute all solutions for F_p, the starting system
+  # according to the package's usage, Total Degree Homotopy is used.
+  result_p = solve(F_p)
 
-# record the solutions
-S_p0 = solutions(result_p)
-num_sol_start_system = length(S_p0)
+  # record the solutions
+  S_p0 = solutions(result_p)
+  num_sol_start_system = length(S_p0)
 
-@printf("Starting systems: no. of real solutions = %d\n", num_sol_start_system)
+  @printf("Starting systems: no. of real solutions = %d\n", num_sol_start_system)
 
-#Construct the PathTracker
-tracker = pathtracker(F; parameters=p, generic_parameters=p0)
+  #Construct the PathTracker
+  tracker = pathtracker(F; parameters=p, generic_parameters=p0)
+end
 
-# solve algebraic equations for given parameters p
-function find_solutions(p)
+# solve algebraic equations for given parameters p, with path tracking
+function find_solutions_by_tracking(p)
     # Create an empty array.
     S_p = similar(S_p0, 0)
     for s in S_p0
@@ -56,10 +64,45 @@ function find_solutions(p)
         # check that the tracking was successfull
        if is_success(result) && is_real(result)
          sol=solution(result)
-	 push!(S_p, sol)
+	 new_sol_flag = 1
+	 for i in 1:length(S_p)
+	    if euclidean_distance(S_p[i], sol) < new_sol_tol
+	      new_sol_flag = 0
+	      break
+	    end
+	 end
+	 if new_sol_flag == 1
+	   push!(S_p, sol)
+	 end
        end
     end
     return S_p
+end
+
+# solve equations without path tracking
+function find_solutions_total_degreee(p_current)
+  F_p = subs(F, p => p_current)
+  # Compute all solutions for F_p  
+  # according to the package's usage, Total Degree Homotopy is used.
+  result_p = solve(F_p)
+  # record the solutions
+  S_p = solutions(result_p; only_real=true)
+  return S_p
+end
+
+function find_solutions(p)
+  if path_tracking_flag == 1
+    S_p = find_solutions_by_tracking(p)
+  else 
+    S_p = find_solutions_total_degreee(p)
+  end
+  n = length(S_p)
+  lambda_vec = zeros(k,n)
+  # extract the real part
+  for i in 1:n
+    lambda_vec[:,i] = [S_p[i][j].re for j in 1:k]
+  end
+  return lambda_vec
 end
 
 # compute several possible proposal states, at the current state (x,v)
@@ -71,20 +114,27 @@ function forward_rattle(x, v, step_size)
   x_tmp = x + step_size * v + coeff * grad_pot_vec 
   p = vcat(x_tmp, step_size * grad_xi_vec[1,:])
   # find Lagrange multipliers for x
-  S_p = find_solutions(p)
-  n = length(S_p)
+  lam_x = find_solutions(p)
+  n = length(lam_x)
   # if we find at least one solutions
   if n > 0
+    dist = zeros(n)
+    # compute the distance wrt x for each proposal
+    for i in 1:n
+      dist[i] = norm(x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,i] - x)
+    end
+    # sort accrording to the distance
+    perm = sortperm(dist)
     # randomly choose one
     j = rand(1:n)
     # compute the new state x^1
-    x_1 = x_tmp + step_size * grad_xi_vec[1,:] * S_p[j][1].re
+    x_1 = x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,j]
     if check_rattle_flag == 1 && norm(xi(x_1)) > check_tol
       println("x^1 is not on the level set, |xi(x^1)|=", norm(xi(x_1)))
       exit(1)
     end
     # prepare to compute the Lagrange multiplier lam_v
-    v_tmp = v - 0.5 * step_size * (grad_pot_vec + grad_V(x_1)) + grad_xi_vec[1,:] * S_p[j][1].re
+    v_tmp = v - 0.5 * step_size * (grad_pot_vec + grad_V(x_1)) + transpose(grad_xi_vec) * lam_x[:,j] 
     grad_xi_vec_1 = grad_xi(x_1)
     mat_v_tmp = grad_xi_vec_1 * transpose(grad_xi_vec_1)
     # directly compute the Lagrange multiplier lam_v, by solving a linear system
@@ -105,19 +155,19 @@ function backward_check(x1, v1, x, v, step_size)
   x_tmp = x1 + step_size * v1 + coeff * grad_pot_vec 
   p = vcat(x_tmp, step_size * grad_xi_vec[1,:])
   # find Lagrange multipliers for x
-  S_p = find_solutions(p)
+  lam_x = find_solutions(p)
   backward_found_flag = 0
   jj = 0
   # go through all solutions, and check if one solution is (x,v)
-  for j in 1:length(S_p)
+  for j in 1:length(lam_x)
     # compute the new state x^2
-    x_2 = x_tmp + step_size * grad_xi_vec[1,:] * S_p[j][1].re
+    x_2 = x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,j]
     # first check whether the states are the same
     if norm(x_2 - x) > backward_check_tol
       continue
     else # if the states are the same, compute the velocity and check 
       # prepare to compute the Lagrange multiplier lam_v
-      v_tmp = v1 - 0.5 * step_size * (grad_pot_vec + grad_V(x_2)) + grad_xi_vec[1,:] * S_p[j][1].re
+      v_tmp = v1 - 0.5 * step_size * (grad_pot_vec + grad_V(x_2)) + transpose(grad_xi_vec) * lam_x[:,j] 
       grad_xi_vec_2 = grad_xi(x_2)
       mat_v_tmp = grad_xi_vec_2 * transpose(grad_xi_vec_2)
       # directly compute the Lagrange multiplier lam_v, by solving a linear system
@@ -129,10 +179,13 @@ function backward_check(x1, v1, x, v, step_size)
 	# record the index as well. It will be used to compute the M-H rate
 	jj = j
 	break 
+      else 
+        printfln("the same state, different velocity!")
+	println(x1, v1, x, v)
       end
     end
   end
-  return backward_found_flag, length(S_p), jj
+  return backward_found_flag, length(lam_x), jj
 end
 
 function rand_draw_velocity(x)
@@ -204,7 +257,6 @@ for i in 1:N
 end
 # time end
 end
-
 
 # print statistics of the computation
 
