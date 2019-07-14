@@ -20,7 +20,7 @@ new_sol_tol = 1e-6
 path_tracking_flag = 1
 
 # total number of samples 
-N = 50000
+N = 500000
 
 # upper bound of solution number, here we assume there are at most 4 solutions
 max_no_sol = 4
@@ -30,7 +30,7 @@ max_no_sol = 4
 user_defined_pj_flag = 1
 
 if user_defined_pj_flag == 1
-  pj_vec = [[1.0], [0.50, 0.50], [0.6, 0.3, 0.1], [0.6, 0.2, 0.1, 0.1]]
+  pj_vec = [[1.0], [0.70, 0.30], [0.6, 0.3, 0.1], [0.6, 0.2, 0.1, 0.1]]
 else #uniform distribution
   pj_vec = [[1.0 / i for j in 1:i] for i in 1:max_no_sol]
 end
@@ -312,19 +312,19 @@ end
 
 # print statistics of the computation
 
-@printf("\nforward_success_counter = %d\nbackward_success_counter = %d\naverage MH rate = %.3f\naverage jump distance = %.3f\n", forward_success_counter, backward_success_counter, stat_success_counter * 1.0 / N, stat_average_distance * 1.0 / stat_success_counter)
+@printf("\nForward_success_counter = %d\nBackward_success_counter = %d\nAverage MH rate = %.3f\nAverage jump distance = %.3f\n", forward_success_counter, backward_success_counter, stat_success_counter * 1.0 / N, stat_average_distance * 1.0 / stat_success_counter)
 
-println("\nNo. of solutions in forward rattle")
+println("\nNo. of solutions in forward rattle:")
 for i in 1:(max_no_sol+1)
   if stat_num_of_solution_forward[i] > 0
-    @printf("%d solutions: %d\n", i-1, stat_num_of_solution_forward[i])
+    @printf("\t%d solutions: %d\n", i-1, stat_num_of_solution_forward[i])
   end
 end
 
-println("\nNo. of solutions in backward check")
+println("\nNo. of solutions in backward check:")
 for i in 1:(max_no_sol+1)
   if stat_num_of_solution_backward[i] > 0
-    @printf("%d solutions: %d\n", i-1, stat_num_of_solution_backward[i])
+    @printf("\t%d solutions: %d\n", i-1, stat_num_of_solution_backward[i])
   end
 end
 
