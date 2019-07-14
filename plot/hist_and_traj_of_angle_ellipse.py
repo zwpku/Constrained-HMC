@@ -6,15 +6,17 @@ import math
 
 def U(theta):
   x0 = c * math.cos(theta)
-  return 0.5 * x0**2
+  return 2.0 * x0**2
 
 working_dir_name = '../'
+job_id = 1
 dim = 2
+output_every_k = 1
 c = 3.0
 c2 = c**2
 lc = ['b', 'r', 'k', 'c', 'm', 'y']
 
-data_file_name = '%s/data/data.txt' % (working_dir_name)
+data_file_name = '%s/data/data_%d.txt' % (working_dir_name, job_id)
 
 fig, ax = plt.subplots(1, 1, figsize=(8, 5))
 xv_data = np.loadtxt(data_file_name)
@@ -25,6 +27,14 @@ angle_vec_from_data = [math.atan2(xv_data[i][1], xv_data[i][0]/c) for i in range
 for i in range(N):
   if angle_vec_from_data[i] < 0:
       angle_vec_from_data[i] += 2 * math.pi
+
+plt.plot(angle_vec_from_data[::output_every_k], color=lc[0], linestyle='-', label=r'$\theta$')
+fig.tight_layout()
+ax.legend(bbox_to_anchor=(0.5, 0, 0.5, 0.5))
+out_fig_name = '%s/fig/traj_ellipse_angle_%d.eps' % (working_dir_name, job_id)
+fig.savefig(out_fig_name)
+
+plt.clf()
 
 num_x = 500
 dtheta = 2 * math.pi / num_x 
@@ -40,5 +50,5 @@ plt.hist(angle_vec_from_data, bins=500, density=True, histtype='step',color=lc[0
 plt.plot(theta_vec, true_density,color=lc[1], linestyle='-', label='true density')
 fig.tight_layout()
 ax.legend(bbox_to_anchor=(0.5, 0, 0.5, 0.5))
-out_fig_name = '%s/fig/hist_ellipse_angle.eps' % (working_dir_name)
+out_fig_name = '%s/fig/hist_ellipse_angle_%d.eps' % (working_dir_name, job_id)
 fig.savefig(out_fig_name)

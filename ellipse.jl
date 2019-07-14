@@ -17,12 +17,12 @@ v0 = [0.0, 1.0]
 
 # potential in the target distribution
 function V(x)
-  return 0.5 * x[1] * x[1]
+  return 2.0 * x[1] * x[1]
 end
 
 # gradient of the potential V(x)
 function grad_V(x)
-  return [x[1], 0.0]
+  return [4.0 * x[1], 0.0]
 #  return [0.0, 0.0]
 end
 

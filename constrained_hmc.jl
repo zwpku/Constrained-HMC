@@ -6,6 +6,7 @@ using Printf
 
 include("ellipse.jl")
 
+job_id = 1
 # the stepsize \tau used in the proposal scheme
 step_size = 0.5
 
@@ -20,17 +21,17 @@ new_sol_tol = 1e-6
 path_tracking_flag = 1
 
 # total number of samples 
-N = 500000
+N = 100000
 
 # upper bound of solution number, here we assume there are at most 4 solutions
 max_no_sol = 4
 
 # if this flag is one, indices are chosen according to the 
 # pre-defined probability distributions, based on their distances.
-user_defined_pj_flag = 1
+user_defined_pj_flag = 0
 
 if user_defined_pj_flag == 1
-  pj_vec = [[1.0], [0.70, 0.30], [0.6, 0.3, 0.1], [0.6, 0.2, 0.1, 0.1]]
+  pj_vec = [[1.0], [0.99997, 0.00003], [0.6, 0.3, 0.1], [0.6, 0.2, 0.1, 0.1]]
 else #uniform distribution
   pj_vec = [[1.0 / i for j in 1:i] for i in 1:max_no_sol]
 end
@@ -329,4 +330,6 @@ for i in 1:(max_no_sol+1)
 end
 
 # write the sampled states to the file
-writedlm("./data/data.txt", sample_data)
+output_file = @sprintf("./data/data_%d.txt", job_id)
+writedlm(output_file, sample_data)
+

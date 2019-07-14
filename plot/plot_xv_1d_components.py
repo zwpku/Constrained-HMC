@@ -5,11 +5,12 @@ import numpy as np
 import math
 
 working_dir_name = '../'
+job_id = 1
 dim = 2
 output_every_k = 3
 lc = ['b', 'r', 'k', 'c', 'm', 'y']
 
-data_file_name = '%s/data/data.txt' % (working_dir_name)
+data_file_name = '%s/data/data_%d.txt' % (working_dir_name, job_id)
 
 fig, ax = plt.subplots(1, 1, figsize=(8, 5))
 xv_data = np.loadtxt(data_file_name)
@@ -23,7 +24,7 @@ for i in range(dim):
 #    ax.set_ylim(-3.0, 3.00)
 #    ax.set_yticks(np.arange(-3.0, 3.0, step=1.0))
     fig.tight_layout()
-    out_fig_name = '%s/fig/traj_plot_x%d.eps' % (working_dir_name, i)
+    out_fig_name = '%s/fig/traj_plot_x%d_%d.eps' % (working_dir_name, i, job_id)
     fig.savefig(out_fig_name)
 
 # plot the velocity
@@ -31,5 +32,5 @@ for i in range(dim):
     plt.clf()
     plt.plot(xv_data[::output_every_k,dim + i], color=lc[i], linestyle='-', label='v_%d' % i)
     fig.tight_layout()
-    out_fig_name = '%s/fig/traj_plot_v%d.eps' % (working_dir_name, i)
+    out_fig_name = '%s/fig/traj_plot_v%d_%d.eps' % (working_dir_name, i, job_id)
     fig.savefig(out_fig_name)
