@@ -19,6 +19,28 @@ new_sol_tol = 1e-6
 # the code will be slower, without PathTracking
 path_tracking_flag = 1
 
+# total number of samples 
+N = 50000
+
+# upper bound of solution number, here we assume there are at most 4 solutions
+max_no_sol = 4
+
+# if this flag is one, indices are chosen according to the 
+# pre-defined probability distributions, based on their distances.
+user_defined_pj_flag = 1
+
+if user_defined_pj_flag == 1
+  pj_vec = [[1.0], [0.50, 0.50], [0.6, 0.3, 0.1], [0.6, 0.2, 0.1, 0.1]]
+else #uniform distribution
+  pj_vec = [[1.0 / i for j in 1:i] for i in 1:max_no_sol]
+end
+
+pj_acc_vec = similar(pj_vec)
+for i in 1:max_no_sol
+  pj_acc_vec[i] = cumsum(pj_vec[i])
+end
+
+
 # \xi: a k-dimensional vector
 function xi(x)
   return [xi_i(x,i) for i in 1:k]
@@ -64,6 +86,7 @@ function find_solutions_by_tracking(p)
         # check that the tracking was successfull
        if is_success(result) && is_real(result)
          sol=solution(result)
+	 # check if the solution is new 
 	 new_sol_flag = 1
 	 for i in 1:length(S_p)
 	    if euclidean_distance(S_p[i], sol) < new_sol_tol
@@ -118,15 +141,32 @@ function forward_rattle(x, v, step_size)
   n = length(lam_x)
   # if we find at least one solutions
   if n > 0
-    dist = zeros(n)
-    # compute the distance wrt x for each proposal
-    for i in 1:n
-      dist[i] = norm(x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,i] - x)
+    if n == 1 # if there is only one solution
+      j = 1
+      pj = 1.0
+    else # when multiple solutions exist
+      if user_defined_pj_flag == 1 
+	# sort by distances, and choose indices according to the probability distribution in pj_vec.
+	dist = zeros(n)
+	# compute the distance wrt x for each proposal
+	for i in 1:n
+	  dist[i] = norm(x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,i] - x)
+	end
+	# sort accrording to the distance
+	perm = sortperm(dist)
+	# generate a random number uniformly in [0,1]
+	r = rand()
+	# decide which index to use
+	jtmp = searchsortedfirst(pj_acc_vec[n], r)
+	j = perm[jtmp]
+	# pj is the corresponding probability
+	pj = pj_vec[n][jtmp]
+      else 
+	 # choose one index uniformly
+	j = rand(1:n)
+	pj = 1.0 / n
+      end
     end
-    # sort accrording to the distance
-    perm = sortperm(dist)
-    # randomly choose one
-    j = rand(1:n)
     # compute the new state x^1
     x_1 = x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,j]
     if check_rattle_flag == 1 && norm(xi(x_1)) > check_tol
@@ -141,7 +181,7 @@ function forward_rattle(x, v, step_size)
     lam_v = - inv(mat_v_tmp) * grad_xi_vec_1 * v_tmp 
     # compute the updated velocity v^1
     v_1 = v_tmp + grad_xi_vec_1[1,:] * lam_v[1]
-    return n, j, x_1, v_1
+    return n, pj, x_1, v_1
   end # no solutions are found, if we reach here
   return 0, 0, x, v
 end
@@ -156,18 +196,32 @@ function backward_check(x1, v1, x, v, step_size)
   p = vcat(x_tmp, step_size * grad_xi_vec[1,:])
   # find Lagrange multipliers for x
   lam_x = find_solutions(p)
+  n_back = length(lam_x)
   backward_found_flag = 0
-  jj = 0
+  pj_back = 0.0
+  # sort the solutions by distance
+  if n_back > 1 && user_defined_pj_flag == 1 
+    # sort by distances
+    dist = zeros(n_back)
+    # compute the distance wrt x1 for each proposal
+    for i in 1:n_back
+      dist[i] = norm(x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,i] - x1)
+    end
+    # sort accrording to the distance
+    perm = sortperm(dist)
+  else 
+    perm = 1:n_back
+  end
   # go through all solutions, and check if one solution is (x,v)
-  for j in 1:length(lam_x)
+  for j in 1:n_back
     # compute the new state x^2
-    x_2 = x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,j]
+    x_2 = x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,perm[j]]
     # first check whether the states are the same
     if norm(x_2 - x) > backward_check_tol
       continue
     else # if the states are the same, compute the velocity and check 
       # prepare to compute the Lagrange multiplier lam_v
-      v_tmp = v1 - 0.5 * step_size * (grad_pot_vec + grad_V(x_2)) + transpose(grad_xi_vec) * lam_x[:,j] 
+      v_tmp = v1 - 0.5 * step_size * (grad_pot_vec + grad_V(x_2)) + transpose(grad_xi_vec) * lam_x[:,perm[j]] 
       grad_xi_vec_2 = grad_xi(x_2)
       mat_v_tmp = grad_xi_vec_2 * transpose(grad_xi_vec_2)
       # directly compute the Lagrange multiplier lam_v, by solving a linear system
@@ -176,16 +230,16 @@ function backward_check(x1, v1, x, v, step_size)
       v_2 = v_tmp + grad_xi_vec_2[1,:] * lam_v[1]
       if norm(v_2 - v) < backward_check_tol # successful if we are here, both state and velocity are the same
         backward_found_flag = 1
-	# record the index as well. It will be used to compute the M-H rate
-	jj = j
+	# record the probability as well. It will be used to compute the M-H rate
+	pj_back = pj_vec[n_back][j]
 	break 
       else 
-        printfln("the same state, different velocity!")
+        printfln("the same state, but different velocity!")
 	println(x1, v1, x, v)
       end
     end
   end
-  return backward_found_flag, length(lam_x), jj
+  return backward_found_flag, n_back, pj_back
 end
 
 function rand_draw_velocity(x)
@@ -197,17 +251,13 @@ function rand_draw_velocity(x)
   return U_x * coeff
 end
 
-# total number of samples 
-N = 50000
-
 # array to store the samples 
 sample_data = [zeros(2 * d) for i in 1:N]
 forward_success_counter = 0
 backward_success_counter = 0
 stat_success_counter = 0
+stat_average_distance = 0
 
-# upper bound of solution number, let us assume there are at most 10 solutions
-max_no_sol = 10
 stat_num_of_solution_forward = zeros(max_no_sol+1)
 stat_num_of_solution_backward = zeros(max_no_sol+1)
 
@@ -215,13 +265,13 @@ stat_num_of_solution_backward = zeros(max_no_sol+1)
 @time begin
 # the main loop 
 for i in 1:N
-  global x0, v0, forward_success_counter, backward_success_counter, stat_success_counter, stat_num_of_solution_forward, stat_num_of_solution_backward
+  global x0, v0, forward_success_counter, backward_success_counter, stat_success_counter, stat_num_of_solution_forward, stat_num_of_solution_backward, stat_average_distance
   # first of all, randomly update the velocity 
   v0 = rand_draw_velocity(x0)
   # save the current state
   sample_data[i] = vcat(x0, v0)
   # compute proposal states
-  n, j, x1, v1 = forward_rattle(x0, v0, step_size)
+  n, pj, x1, v1 = forward_rattle(x0, v0, step_size)
   if n <= max_no_sol 
     stat_num_of_solution_forward[n+1] += 1
   else 
@@ -230,7 +280,7 @@ for i in 1:N
   if n > 0 # if one solution has been found, do backward check
     forward_success_counter += 1 
     # reverse the velocity, and do backward check
-    found_flag, n_back, j_back = backward_check(x1, -v1, x0, -v0, step_size)
+    found_flag, n_back, pj_back = backward_check(x1, -v1, x0, -v0, step_size)
     if n_back <= max_no_sol 
       stat_num_of_solution_backward[n_back+1] += 1
     else 
@@ -240,11 +290,13 @@ for i in 1:N
       backward_success_counter += 1
       h = energy(x0, v0) 
       h_1 = energy(x1, v1) 
+#      @printf("n=%d, pj = %.3f n_back=%d, pj_back=%.3f\n", n, pj, n_back, pj_back)
       # compute the MH-rate
-      mh_rate = min(1, exp(h - h_1) * n / n_back)
+      mh_rate = min(1, exp(h - h_1) * pj_back / pj)
       r = rand()
       if r < mh_rate # accept the proposal
         stat_success_counter += 1
+	stat_average_distance += norm(x1-x0)
         x0 = x1
         v0 = v1
       	continue
@@ -260,7 +312,7 @@ end
 
 # print statistics of the computation
 
-@printf("\nforward_success_counter = %d\nbackward_success_counter = %d\naverage MH rate = %.3f\n", forward_success_counter, backward_success_counter, stat_success_counter * 1.0 / N)
+@printf("\nforward_success_counter = %d\nbackward_success_counter = %d\naverage MH rate = %.3f\naverage jump distance = %.3f\n", forward_success_counter, backward_success_counter, stat_success_counter * 1.0 / N, stat_average_distance * 1.0 / stat_success_counter)
 
 println("\nNo. of solutions in forward rattle")
 for i in 1:(max_no_sol+1)
