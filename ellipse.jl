@@ -36,7 +36,7 @@ function grad_xi_i(x, idx)
   return [x[1] / c2 , x[2]]
 end
 
-@polyvar lam[1:k] y z p[1:(2 * d)] 
+@polyvar lam[1:k] y z p[1:((1+k)*d)]  
 
 # equations of the Lagrange multipliers, p contains parameters, lam is the unknown multipliers
 F = [(p[1] + p[d + 1] * lam[1])^2  / c2 + (p[2] + p[d+2] * lam[1])^2 - 1.0]

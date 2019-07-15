@@ -1,5 +1,6 @@
 using HomotopyContinuation, DynamicPolynomials
 using LinearAlgebra
+using IterativeSolvers 
 using PyPlot
 using DelimitedFiles
 using Printf
@@ -17,11 +18,18 @@ check_tol = 1e-6
 backward_check_tol = 1e-6
 new_sol_tol = 1e-6
 
+newton_res_tol = 1e-8
+newton_max_steps = 10
+
+# how often to solve equation by homotopy method
+# Newton's method with be used otherwise
+use_homotopy_solver_frequency = 10000
+
 # the code will be slower, without PathTracking
 path_tracking_flag = 1
 
 # total number of samples 
-N = 100000
+N = 5000
 
 # upper bound of solution number, here we assume there are at most 4 solutions
 max_no_sol = 4
@@ -103,6 +111,26 @@ function find_solutions_by_tracking(p)
     return S_p
 end
 
+# find one solution by Newton's method
+function find_solution_by_newton(xtmp, grad_xi_vec)
+  lam = zeros(k)
+  x_now = xtmp
+  b = xi(x_now)
+  iter = 0
+  while norm(b) > newton_res_tol && iter < newton_max_steps
+    mat = grad_xi(x_now) * transpose(grad_xi_vec)
+    lam += -1.0 * lsmr(mat, b) / step_size 
+    x_now = xtmp + step_size * transpose(grad_xi_vec) * lam
+    b = xi(x_now)
+    iter += 1
+  end
+  if norm(b) < newton_res_tol
+    return reshape(lam, k, 1)
+  else 
+    return []
+  end
+end
+
 # solve equations without path tracking
 function find_solutions_total_degreee(p_current)
   F_p = subs(F, p => p_current)
@@ -130,15 +158,19 @@ function find_solutions(p)
 end
 
 # compute several possible proposal states, at the current state (x,v)
-function forward_rattle(x, v, step_size)
+function forward_rattle(x, v, use_newton_flag)
   grad_pot_vec = grad_V(x)
   # this should be a (k x d) matrix
   grad_xi_vec = grad_xi(x)
   coeff = - step_size * step_size * 0.5
   x_tmp = x + step_size * v + coeff * grad_pot_vec 
-  p = vcat(x_tmp, step_size * grad_xi_vec[1,:])
   # find Lagrange multipliers for x
-  lam_x = find_solutions(p)
+  if use_newton_flag == 1 # by Newton's method
+    lam_x = find_solution_by_newton(x_tmp, grad_xi_vec)
+  else  # by HomotopyContinuation
+    p = vcat(x_tmp, step_size * reshape(grad_xi_vec, length(grad_xi_vec), 1)[:,1])
+    lam_x = find_solutions(p)
+  end
   n = length(lam_x)
   # if we find at least one solutions
   if n > 0
@@ -188,15 +220,18 @@ function forward_rattle(x, v, step_size)
 end
 
 #backward check, similar to the forward_rattle function.
-function backward_check(x1, v1, x, v, step_size)
+function backward_check(x1, v1, x, v, use_newton_flag)
   grad_pot_vec = grad_V(x1)
   # this should be a (k x d) matrix
   grad_xi_vec = grad_xi(x1)
   coeff = - step_size * step_size * 0.5
   x_tmp = x1 + step_size * v1 + coeff * grad_pot_vec 
-  p = vcat(x_tmp, step_size * grad_xi_vec[1,:])
-  # find Lagrange multipliers for x
-  lam_x = find_solutions(p)
+  if use_newton_flag == 1 # by Newton's method
+    lam_x = find_solution_by_newton(x_tmp, grad_xi_vec)
+  else  # by HomotopyContinuation
+    p = vcat(x_tmp, step_size * reshape(grad_xi_vec, length(grad_xi_vec), 1)[:,1])
+    lam_x = find_solutions(p)
+  end
   n_back = length(lam_x)
   backward_found_flag = 0
   pj_back = 0.0
@@ -235,8 +270,8 @@ function backward_check(x1, v1, x, v, step_size)
 	pj_back = pj_vec[n_back][j]
 	break 
       else 
-        printfln("the same state, but different velocity!")
-	println(x1, v1, x, v)
+        println("the same state, but different velocity!")
+	println("from ", x1, v1, ", to ", x, v, ", get ", x_2, v_2)
       end
     end
   end
@@ -271,8 +306,13 @@ for i in 1:N
   v0 = rand_draw_velocity(x0)
   # save the current state
   sample_data[i] = vcat(x0, v0)
+  if i % use_homotopy_solver_frequency == 0
+    use_newton_flag = 0
+  else 
+    use_newton_flag = 1
+  end
   # compute proposal states
-  n, pj, x1, v1 = forward_rattle(x0, v0, step_size)
+  n, pj, x1, v1 = forward_rattle(x0, v0, use_newton_flag)
   if n <= max_no_sol 
     stat_num_of_solution_forward[n+1] += 1
   else 
@@ -281,7 +321,7 @@ for i in 1:N
   if n > 0 # if one solution has been found, do backward check
     forward_success_counter += 1 
     # reverse the velocity, and do backward check
-    found_flag, n_back, pj_back = backward_check(x1, -v1, x0, -v0, step_size)
+    found_flag, n_back, pj_back = backward_check(x1, -v1, x0, -v0, use_newton_flag)
     if n_back <= max_no_sol 
       stat_num_of_solution_backward[n_back+1] += 1
     else 
