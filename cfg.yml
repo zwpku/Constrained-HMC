@@ -1,4 +1,13 @@
+# ************************************
+# this file contains values of parameters that are used in the code.
+# ************************************
+#
 job_id : 1
+
+# whether the manifold is algebraic, 
+# or, equivalently, whether the function \xi is polynomial 
+is_algebraic_manifold_flag : 1
+
 # the stepsize \tau used in the proposal scheme
 step_size : 0.5
 
@@ -14,7 +23,7 @@ newton_max_steps : 10
 
 # how often to solve equation by homotopy method
 # Newton's method with be used otherwise
-use_homotopy_solver_frequency : 1
+use_homotopy_solver_frequency : 0
 
 # the code will be slower, without PathTracking
 path_tracking_flag : 1

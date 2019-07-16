@@ -5,8 +5,8 @@ using PyPlot
 using DelimitedFiles
 using Printf
 
-include("ellipse.jl")
 include("read_params.jl")
+include("ellipse.jl")
 include("utils.jl")
 
 # initialize the vector pj_vec 
@@ -22,7 +22,7 @@ for i in 1:max_no_sol
 end
 
 # prepare the start system
-if path_tracking_flag == 1
+if use_homotopy_solver_frequency > 0 && path_tracking_flag == 1
   F_p = subs(F, p => p0)
   # Compute all solutions for F_p, the starting system
   # according to the package's usage, Total Degree Homotopy is used.
