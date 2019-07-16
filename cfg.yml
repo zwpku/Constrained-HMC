@@ -1,0 +1,31 @@
+job_id : 1
+# the stepsize \tau used in the proposal scheme
+step_size : 0.5
+
+# check the forward scheme and print information, if the flag equals 1.
+check_rattle_flag : 1
+# tolerance error
+check_tol : 1e-6
+backward_check_tol : 1e-6
+new_sol_tol : 1e-6
+
+newton_res_tol : 1e-8
+newton_max_steps : 10
+
+# how often to solve equation by homotopy method
+# Newton's method with be used otherwise
+use_homotopy_solver_frequency : 1
+
+# the code will be slower, without PathTracking
+path_tracking_flag : 1
+
+# total number of samples 
+N : 50000
+
+# upper bound of solution number, here we assume there are at most 4 solutions
+max_no_sol : 4
+
+# if this flag is one, indices are chosen according to the 
+# pre-defined probability distributions, based on their distances.
+user_defined_pj_flag : 0
+

@@ -6,38 +6,10 @@ using DelimitedFiles
 using Printf
 
 include("ellipse.jl")
+include("read_params.jl")
+include("utils.jl")
 
-job_id = 1
-# the stepsize \tau used in the proposal scheme
-step_size = 0.5
-
-# check the forward scheme and print information, if the flag equals 1.
-check_rattle_flag = 1
-# tolerance error
-check_tol = 1e-6
-backward_check_tol = 1e-6
-new_sol_tol = 1e-6
-
-newton_res_tol = 1e-8
-newton_max_steps = 10
-
-# how often to solve equation by homotopy method
-# Newton's method with be used otherwise
-use_homotopy_solver_frequency = 10000
-
-# the code will be slower, without PathTracking
-path_tracking_flag = 1
-
-# total number of samples 
-N = 5000
-
-# upper bound of solution number, here we assume there are at most 4 solutions
-max_no_sol = 4
-
-# if this flag is one, indices are chosen according to the 
-# pre-defined probability distributions, based on their distances.
-user_defined_pj_flag = 0
-
+# initialize the vector pj_vec 
 if user_defined_pj_flag == 1
   pj_vec = [[1.0], [0.99997, 0.00003], [0.6, 0.3, 0.1], [0.6, 0.2, 0.1, 0.1]]
 else #uniform distribution
@@ -47,26 +19,6 @@ end
 pj_acc_vec = similar(pj_vec)
 for i in 1:max_no_sol
   pj_acc_vec[i] = cumsum(pj_vec[i])
-end
-
-
-# \xi: a k-dimensional vector
-function xi(x)
-  return [xi_i(x,i) for i in 1:k]
-end
-
-# \nabla\xi: a k\times d matrix
-function grad_xi(x)
-  tmp = zeros(k,d)
-  for i in 1:k
-    tmp[i,:] = grad_xi_i(x,i)
-  end
-  return tmp
-end
-
-# Hamiltonian energy 
-function energy(x,v)
-  return V(x) + dot(v,v) * 0.5
 end
 
 # prepare the start system
@@ -84,77 +36,6 @@ if path_tracking_flag == 1
 
   #Construct the PathTracker
   tracker = pathtracker(F; parameters=p, generic_parameters=p0)
-end
-
-# solve algebraic equations for given parameters p, with path tracking
-function find_solutions_by_tracking(p)
-    # Create an empty array.
-    S_p = similar(S_p0, 0)
-    for s in S_p0
-        result = track(tracker, s; target_parameters=p)
-        # check that the tracking was successfull
-       if is_success(result) && is_real(result)
-         sol=solution(result)
-	 # check if the solution is new 
-	 new_sol_flag = 1
-	 for i in 1:length(S_p)
-	    if euclidean_distance(S_p[i], sol) < new_sol_tol
-	      new_sol_flag = 0
-	      break
-	    end
-	 end
-	 if new_sol_flag == 1
-	   push!(S_p, sol)
-	 end
-       end
-    end
-    return S_p
-end
-
-# find one solution by Newton's method
-function find_solution_by_newton(xtmp, grad_xi_vec)
-  lam = zeros(k)
-  x_now = xtmp
-  b = xi(x_now)
-  iter = 0
-  while norm(b) > newton_res_tol && iter < newton_max_steps
-    mat = grad_xi(x_now) * transpose(grad_xi_vec)
-    lam += -1.0 * lsmr(mat, b) / step_size 
-    x_now = xtmp + step_size * transpose(grad_xi_vec) * lam
-    b = xi(x_now)
-    iter += 1
-  end
-  if norm(b) < newton_res_tol
-    return reshape(lam, k, 1)
-  else 
-    return []
-  end
-end
-
-# solve equations without path tracking
-function find_solutions_total_degreee(p_current)
-  F_p = subs(F, p => p_current)
-  # Compute all solutions for F_p  
-  # according to the package's usage, Total Degree Homotopy is used.
-  result_p = solve(F_p)
-  # record the solutions
-  S_p = solutions(result_p; only_real=true)
-  return S_p
-end
-
-function find_solutions(p)
-  if path_tracking_flag == 1
-    S_p = find_solutions_by_tracking(p)
-  else 
-    S_p = find_solutions_total_degreee(p)
-  end
-  n = length(S_p)
-  lambda_vec = zeros(k,n)
-  # extract the real part
-  for i in 1:n
-    lambda_vec[:,i] = [S_p[i][j].re for j in 1:k]
-  end
-  return lambda_vec
 end
 
 # compute several possible proposal states, at the current state (x,v)
@@ -306,7 +187,7 @@ for i in 1:N
   v0 = rand_draw_velocity(x0)
   # save the current state
   sample_data[i] = vcat(x0, v0)
-  if i % use_homotopy_solver_frequency == 0
+  if use_homotopy_solver_frequency > 0 && i % use_homotopy_solver_frequency == 0
     use_newton_flag = 0
   else 
     use_newton_flag = 1
