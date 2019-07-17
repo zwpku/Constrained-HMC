@@ -6,8 +6,11 @@ using DelimitedFiles
 using Printf
 
 include("read_params.jl")
-#include("ellipse_in_3d.jl")
-include("ellipse.jl")
+
+@printf("Include model from file: %s\n\n", model_file_name)
+
+include(model_file_name)
+
 include("utils.jl")
 
 # when mutilple solutions can be found, initialize the vector pj_vec 

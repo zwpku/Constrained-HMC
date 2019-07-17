@@ -4,6 +4,9 @@
 #
 job_id : 1
 
+#model_file_name : ellipse.jl
+model_file_name : ellipse_in_3d.jl
+
 # whether the manifold is algebraic, 
 # or, equivalently, whether the function \xi is polynomial 
 is_algebraic_manifold_flag : 1

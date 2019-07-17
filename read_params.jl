@@ -6,6 +6,9 @@ cfg_data = YAML.load(open(cfg_file))
 
 job_id = cfg_data["job_id"]
 
+# provide filename of the model 
+model_file_name = cfg_data["model_file_name"]
+
 # total number of samples 
 N = cfg_data["N"]
 
