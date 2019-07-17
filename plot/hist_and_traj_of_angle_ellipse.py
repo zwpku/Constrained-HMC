@@ -10,7 +10,7 @@ def U(theta):
 
 working_dir_name = '../'
 job_id = 1
-dim = 2
+dim = 3
 output_every_k = 1
 c = 3.0
 c2 = c**2

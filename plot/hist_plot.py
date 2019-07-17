@@ -6,7 +6,7 @@ import math
 
 working_dir_name = '../'
 job_id = 1
-dim = 2
+dim = 3
 lc = ['b', 'r', 'k', 'c', 'm', 'y']
 
 data_file_name = '%s/data/data_%d.txt' % (working_dir_name, job_id)

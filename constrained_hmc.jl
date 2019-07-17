@@ -6,36 +6,20 @@ using DelimitedFiles
 using Printf
 
 include("read_params.jl")
-include("ellipse.jl")
+include("ellipse_in_3d.jl")
 include("utils.jl")
 
-# initialize the vector pj_vec 
-if user_defined_pj_flag == 1
-  pj_vec = [[1.0], [0.99997, 0.00003], [0.6, 0.3, 0.1], [0.6, 0.2, 0.1, 0.1]]
-else #uniform distribution
-  pj_vec = [[1.0 / i for j in 1:i] for i in 1:max_no_sol]
-end
-
-pj_acc_vec = similar(pj_vec)
-for i in 1:max_no_sol
-  pj_acc_vec[i] = cumsum(pj_vec[i])
-end
-
-# prepare the start system
-if use_homotopy_solver_frequency > 0 && path_tracking_flag == 1
-  F_p = subs(F, p => p0)
-  # Compute all solutions for F_p, the starting system
-  # according to the package's usage, Total Degree Homotopy is used.
-  result_p = solve(F_p)
-
-  # record the solutions
-  S_p0 = solutions(result_p)
-  num_sol_start_system = length(S_p0)
-
-  @printf("Starting systems: no. of real solutions = %d\n", num_sol_start_system)
-
-  #Construct the PathTracker
-  tracker = pathtracker(F; parameters=p, generic_parameters=p0)
+# when mutilple solutions can be found, initialize the vector pj_vec 
+if use_homotopy_solver_frequency > 0
+  if user_defined_pj_flag == 1
+    pj_vec = [[1.0], [0.99997, 0.00003], [0.6, 0.3, 0.1], [0.6, 0.2, 0.1, 0.1]]
+  else #uniform distribution
+    pj_vec = [[1.0 / i for j in 1:i] for i in 1:max_no_sol]
+  end
+  pj_acc_vec = similar(pj_vec)
+  for i in 1:max_no_sol
+    pj_acc_vec[i] = cumsum(pj_vec[i])
+  end
 end
 
 # compute several possible proposal states, at the current state (x,v)
@@ -49,10 +33,11 @@ function forward_rattle(x, v, use_newton_flag)
   if use_newton_flag == 1 # by Newton's method
     lam_x = find_solution_by_newton(x_tmp, grad_xi_vec)
   else  # by HomotopyContinuation
-    p = vcat(x_tmp, step_size * reshape(grad_xi_vec, length(grad_xi_vec), 1)[:,1])
-    lam_x = find_solutions(p)
+    # be careful how the parameters are ordered in p
+    p = vcat(x_tmp, step_size * reshape(transpose(grad_xi_vec), length(grad_xi_vec), 1)[:,1])
+    lam_x = find_solutions(p, use_newton_flag)
   end
-  n = length(lam_x)
+  n = size(lam_x, 2)
   # if we find at least one solutions
   if n > 0
     if n == 1 # if there is only one solution
@@ -110,10 +95,11 @@ function backward_check(x1, v1, x, v, use_newton_flag)
   if use_newton_flag == 1 # by Newton's method
     lam_x = find_solution_by_newton(x_tmp, grad_xi_vec)
   else  # by HomotopyContinuation
-    p = vcat(x_tmp, step_size * reshape(grad_xi_vec, length(grad_xi_vec), 1)[:,1])
-    lam_x = find_solutions(p)
+    # be careful how the parameters are ordered in p
+    p = vcat(x_tmp, step_size * reshape(transpose(grad_xi_vec), length(grad_xi_vec), 1)[:,1]) 
+    lam_x = find_solutions(p, use_newton_flag)
   end
-  n_back = length(lam_x)
+  n_back = size(lam_x, 2)
   backward_found_flag = 0
   pj_back = 0.0
   # sort the solutions by distance
@@ -133,27 +119,17 @@ function backward_check(x1, v1, x, v, use_newton_flag)
   for j in 1:n_back
     # compute the new state x^2
     x_2 = x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,perm[j]]
-    # first check whether the states are the same
-    if norm(x_2 - x) > backward_check_tol
-      continue
-    else # if the states are the same, compute the velocity and check 
-      # prepare to compute the Lagrange multiplier lam_v
-      v_tmp = v1 - 0.5 * step_size * (grad_pot_vec + grad_V(x_2)) + transpose(grad_xi_vec) * lam_x[:,perm[j]] 
-      grad_xi_vec_2 = grad_xi(x_2)
-      mat_v_tmp = grad_xi_vec_2 * transpose(grad_xi_vec_2)
-      # directly compute the Lagrange multiplier lam_v, by solving a linear system
-      lam_v = - inv(mat_v_tmp) * grad_xi_vec_2 * v_tmp 
-      # compute the updated velocity v^2
-      v_2 = v_tmp + grad_xi_vec_2[1,:] * lam_v[1]
-      if norm(v_2 - v) < backward_check_tol # successful if we are here, both state and velocity are the same
-        backward_found_flag = 1
-	# record the probability as well. It will be used to compute the M-H rate
+    # check whether the states are the same
+    # Note that, we don't check velocities, because the velocities will be the same, if the states are the same.   
+    if norm(x_2 - x) < backward_check_tol 
+      backward_found_flag = 1
+      # record the probability as well. It will be used to compute the M-H rate
+      if n_back > 1
 	pj_back = pj_vec[n_back][j]
-	break 
       else 
-        println("the same state, but different velocity!")
-	println("from ", x1, v1, ", to ", x, v, ", get ", x_2, v_2)
+        pj_back = 1
       end
+      break 
     end
   end
   return backward_found_flag, n_back, pj_back
@@ -172,6 +148,7 @@ end
 sample_data = [zeros(2 * d) for i in 1:N]
 forward_success_counter = 0
 backward_success_counter = 0
+newton_counter = 0 
 stat_success_counter = 0
 stat_average_distance = 0
 
@@ -188,9 +165,14 @@ for i in 1:N
   # save the current state
   sample_data[i] = vcat(x0, v0)
   if use_homotopy_solver_frequency > 0 && i % use_homotopy_solver_frequency == 0
-    use_newton_flag = 0
+    if i == use_homotopy_solver_frequency #the first time we use homotopy, the start system will be solved
+      use_newton_flag = -1
+    else 
+      use_newton_flag = 0
+    end 
   else 
     use_newton_flag = 1
+    global newton_counter += 1
   end
   # compute proposal states
   n, pj, x1, v1 = forward_rattle(x0, v0, use_newton_flag)
@@ -201,6 +183,9 @@ for i in 1:N
   end
   if n > 0 # if one solution has been found, do backward check
     forward_success_counter += 1 
+    if use_newton_flag < 0
+      use_newton_flag = 0
+    end
     # reverse the velocity, and do backward check
     found_flag, n_back, pj_back = backward_check(x1, -v1, x0, -v0, use_newton_flag)
     if n_back <= max_no_sol 
@@ -235,6 +220,8 @@ end
 # print statistics of the computation
 
 @printf("\nForward_success_counter = %d\nBackward_success_counter = %d\nAverage MH rate = %.3f\nAverage jump distance = %.3f\n", forward_success_counter, backward_success_counter, stat_success_counter * 1.0 / N, stat_average_distance * 1.0 / stat_success_counter)
+
+@printf("\nNo. of steps using Newton's method: %d\nNo. of steps using Homotopy method: %d\n", newton_counter, N - newton_counter)
 
 println("\nNo. of solutions in forward rattle:")
 for i in 1:(max_no_sol+1)

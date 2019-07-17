@@ -73,11 +73,20 @@ function find_solutions_total_degreee(p_current)
   return S_p
 end
 
-function find_solutions(p)
-  if path_tracking_flag == 1
-    S_p = find_solutions_by_tracking(p)
+function find_solutions(p_current, flag)
+  if path_tracking_flag == 0
+    S_p = find_solutions_total_degreee(p_current)
   else 
-    S_p = find_solutions_total_degreee(p)
+    if flag == -1 # prepare the start system, if this is the first time 
+      S_p = find_solutions_total_degreee(p_current)
+      # record the solutions
+      global S_p0 = S_p
+      @printf("Starting systems: no. of real solutions = %d\n", length(S_p0))
+      #Construct the PathTracker
+      global tracker = pathtracker(F; parameters=p, generic_parameters=p_current)
+    else 
+      S_p = find_solutions_by_tracking(p_current)
+    end
   end
   n = length(S_p)
   lambda_vec = zeros(k,n)

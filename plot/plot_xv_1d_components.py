@@ -6,7 +6,7 @@ import math
 
 working_dir_name = '../'
 job_id = 1
-dim = 2
+dim = 3
 output_every_k = 3
 lc = ['b', 'r', 'k', 'c', 'm', 'y']
 

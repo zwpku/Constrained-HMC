@@ -23,7 +23,7 @@ newton_max_steps : 10
 
 # how often to solve equation by homotopy method
 # Newton's method with be used otherwise
-use_homotopy_solver_frequency : 0
+use_homotopy_solver_frequency : 100
 
 # the code will be slower, without PathTracking
 path_tracking_flag : 1
