@@ -6,7 +6,8 @@ using DelimitedFiles
 using Printf
 
 include("read_params.jl")
-include("ellipse_in_3d.jl")
+#include("ellipse_in_3d.jl")
+include("ellipse.jl")
 include("utils.jl")
 
 # when mutilple solutions can be found, initialize the vector pj_vec 
