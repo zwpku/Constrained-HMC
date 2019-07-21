@@ -7,7 +7,7 @@ import math
 def U(theta):
   x0 = c * math.cos(theta)
   return 0.0
-  return 2.0 * x0**2
+#  return 2.0 * x0**2
 
 working_dir_name = '../'
 job_id = 4
@@ -48,7 +48,7 @@ for i in range(num_x):
   norm_z += true_density[i] * dtheta
 true_density = [true_density[i] / norm_z for i in range(num_x)]
   
-plt.hist(angle_vec_from_data, bins=1000, density=True, histtype='step',color=lc[0], label='hist')
+plt.hist(angle_vec_from_data, bins=100, density=True, histtype='step',color=lc[0], label='hist')
 plt.plot(theta_vec, true_density,color=lc[1], linestyle='-', label='true density')
 fig.tight_layout()
 ax.legend(bbox_to_anchor=(0.5, 0, 0.5, 0.5))

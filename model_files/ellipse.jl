@@ -28,7 +28,7 @@ end
 
 # the ith component \xi_i of the map \xi
 function xi_i(x, idx)
-  return (x[1] * x[1] / c2 + x[2] * x[2]  - 1) * 0.5
+  return (x[1] * x[1] / c2 + x[2] * x[2]  - 1.0) * 0.5
 end
 
 # gradient of the ith component \xi_i of the map \xi

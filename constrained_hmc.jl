@@ -13,19 +13,6 @@ include(model_file_name)
 
 include("utils.jl")
 
-# when mutilple solutions can be found, initialize the vector pj_vec 
-if use_homotopy_solver_frequency > 0
-  if user_defined_pj_flag == 1
-    pj_vec = [[1.0], [0.99997, 0.00003], [0.6, 0.3, 0.1], [0.6, 0.2, 0.1, 0.1]]
-  else #uniform distribution
-    pj_vec = [[1.0 / i for j in 1:i] for i in 1:max_no_sol]
-  end
-  pj_acc_vec = similar(pj_vec)
-  for i in 1:max_no_sol
-    pj_acc_vec[i] = cumsum(pj_vec[i])
-  end
-end
-
 # compute several possible proposal states, at the current state (x,v)
 function forward_rattle(x, v, use_newton_flag)
   grad_pot_vec = grad_V(x)
@@ -159,6 +146,39 @@ stat_average_distance = 0
 stat_num_of_solution_forward = zeros(max_no_sol+1)
 stat_num_of_solution_backward = zeros(max_no_sol+1)
 
+# when mutilple solutions can be found
+if use_homotopy_solver_frequency > 0
+  # initialize the vector pj_vec 
+  if user_defined_pj_flag == 1
+    pj_vec = [[1.0], [1.0, 0.0], [0.6, 0.3, 0.1], [0.6, 0.2, 0.1, 0.1]]
+  else #uniform distribution
+    pj_vec = [[1.0 / i for j in 1:i] for i in 1:max_no_sol]
+  end
+  pj_acc_vec = similar(pj_vec)
+  for i in 1:max_no_sol
+    pj_acc_vec[i] = cumsum(pj_vec[i])
+  end
+  if path_tracking_flag > 0 # prepare the start system
+    global num_sol_start_system = 0
+    # find a system as many solutions as possible
+    for i in 1:10
+      v0 = rand_draw_velocity(x0)
+      # -1 indicates that we are solving the start system
+      use_newton_flag = -1
+      n, pj, x1, v1 = forward_rattle(x0, v0, use_newton_flag)
+      if n > 0
+	global x0 = x1
+      end
+    end
+    if num_sol_start_system > 0
+      @printf("Starting systems: no. of real solutions = %d\n", length(S_p0))
+    else 
+      println("Error: couldn't find a start system with nonzero solutions!")
+      exit(1)
+    end
+  end
+end
+
 # count the runtime 
 @time begin
 # the main loop 
@@ -169,11 +189,7 @@ for i in 1:N
   # save the current state
   sample_data[i] = vcat(x0, v0)
   if use_homotopy_solver_frequency > 0 && i % use_homotopy_solver_frequency == 0
-    if i == use_homotopy_solver_frequency #the first time we use homotopy, the start system will be solved
-      use_newton_flag = -1
-    else 
-      use_newton_flag = 0
-    end 
+    use_newton_flag = 0
   else 
     use_newton_flag = 1
     global newton_counter += 1
@@ -185,33 +201,32 @@ for i in 1:N
   else 
     @printf("Warning: No. of solutions in forward rattle (=%d) is larger than upper bound (=%d)!", n, max_no_sol)
   end
-  if n > 0 # if one solution has been found, do backward check
-    forward_success_counter += 1 
-    if use_newton_flag < 0
-      use_newton_flag = 0
-    end
-    # reverse the velocity, and do backward check
-    found_flag, n_back, pj_back = backward_check(x1, -v1, x0, -v0, use_newton_flag)
-    if n_back <= max_no_sol 
-      stat_num_of_solution_backward[n_back+1] += 1
-    else 
-      @printf("Warning: No. of solutions in backward check (=%d) is larger than upper bound (=%d)!", n_back, max_no_sol)
-    end
-    if found_flag == 1 # if the backward check is passed 
-      backward_success_counter += 1
-      h = energy(x0, v0) 
-      h_1 = energy(x1, v1) 
+  if n == 0 # no solution
+    continue
+  end
+  # otherwise, if one solution has been found, do backward check
+  forward_success_counter += 1 
+  # reverse the velocity, and do backward check
+  found_flag, n_back, pj_back = backward_check(x1, -v1, x0, -v0, use_newton_flag)
+  if n_back <= max_no_sol 
+    stat_num_of_solution_backward[n_back+1] += 1
+  else 
+    @printf("Warning: No. of solutions in backward check (=%d) is larger than upper bound (=%d)!", n_back, max_no_sol)
+  end
+  if found_flag == 1 # if the backward check is passed 
+    backward_success_counter += 1
+    h = energy(x0, v0) 
+    h_1 = energy(x1, v1) 
 #      @printf("n=%d, pj = %.3f n_back=%d, pj_back=%.3f\n", n, pj, n_back, pj_back)
-      # compute the MH-rate
-      mh_rate = min(1.0, exp(h - h_1) * pj_back / pj)
-      r = rand()
-      if r < mh_rate # accept the proposal
-        stat_success_counter += 1
-	stat_average_distance += norm(x1-x0)
-        x0 = x1
-        v0 = v1
-      	continue
-      end
+    # compute the MH-rate
+    mh_rate = min(1.0, exp(h - h_1) * pj_back / pj)
+    r = rand()
+    if r < mh_rate # accept the proposal
+      stat_success_counter += 1
+      stat_average_distance += norm(x1-x0)
+      x0 = x1
+      v0 = v1
+      continue
     end
   end
 # it is not necessary to flip the velocity, 

@@ -70,15 +70,6 @@ function find_solutions_total_degreee(p_current)
   result_p = solve(F_p)
   # record the solutions
   S_p = solutions(result_p; only_real=true, real_tol=1e-8)
-  for i in 2:length(S_p)
-    for j in 1:(i-1)
-      if euclidean_distance(S_p[i], S_p[j]) < new_sol_tol
-        println("Warning: two solutions are really close!")
-        println("1:", S_p[i])
-        println("2:", S_p[j])
-      end
-    end
-  end
   return S_p
 end
 
@@ -86,13 +77,16 @@ function find_solutions(p_current, flag)
   if path_tracking_flag == 0
     S_p = find_solutions_total_degreee(p_current)
   else 
-    if flag == -1 # prepare the start system, if this is the first time 
+    if flag == -1 # prepare the start system 
       S_p = find_solutions_total_degreee(p_current)
-      # record the solutions
-      global S_p0 = S_p
-      @printf("Starting systems: no. of real solutions = %d\n", length(S_p0))
-      #Construct the PathTracker
-      global tracker = pathtracker(F; parameters=p, generic_parameters=p_current)
+      # update the start system, if we find a new one which has more solutions
+      if length(S_p) > num_sol_start_system 
+	# record the solutions
+	global S_p0 = S_p
+	#Construct the PathTracker
+	global tracker = pathtracker(F; parameters=p, generic_parameters=p_current)
+	global num_sol_start_system = length(S_p0)
+      end
     else 
       S_p = find_solutions_by_tracking(p_current)
     end
