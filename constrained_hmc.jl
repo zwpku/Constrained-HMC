@@ -131,7 +131,7 @@ function backward_check(x1, v1, x, v, use_newton_flag)
       if n_back > 1
 	pj_back = pj_vec[n_back][j]
       else 
-        pj_back = 1
+        pj_back = 1.0
       end
       break 
     end
@@ -203,7 +203,7 @@ for i in 1:N
       h_1 = energy(x1, v1) 
 #      @printf("n=%d, pj = %.3f n_back=%d, pj_back=%.3f\n", n, pj, n_back, pj_back)
       # compute the MH-rate
-      mh_rate = min(1, exp(h - h_1) * pj_back / pj)
+      mh_rate = min(1.0, exp(h - h_1) * pj_back / pj)
       r = rand()
       if r < mh_rate # accept the proposal
         stat_success_counter += 1

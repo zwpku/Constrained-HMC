@@ -6,12 +6,13 @@ import math
 
 def U(theta):
   x0 = c * math.cos(theta)
+  return 0.0
   return 2.0 * x0**2
 
 working_dir_name = '../'
-job_id = 3
+job_id = 4
 dim = 2
-output_every_k = 1
+output_every_k = 500
 c = 3.0
 c2 = c**2
 lc = ['b', 'r', 'k', 'c', 'm', 'y']
@@ -28,7 +29,8 @@ for i in range(N):
   if angle_vec_from_data[i] < 0:
       angle_vec_from_data[i] += 2 * math.pi
 
-plt.plot(angle_vec_from_data[::output_every_k], color=lc[0], linestyle='-', label=r'$\theta$')
+xx = range(0, N, output_every_k)
+plt.plot(xx, angle_vec_from_data[::output_every_k], color=lc[0], linestyle='-', label=r'$\theta$')
 fig.tight_layout()
 ax.legend(bbox_to_anchor=(0.5, 0, 0.5, 0.5))
 out_fig_name = '%s/fig/traj_ellipse_angle_%d.eps' % (working_dir_name, job_id)
@@ -46,7 +48,7 @@ for i in range(num_x):
   norm_z += true_density[i] * dtheta
 true_density = [true_density[i] / norm_z for i in range(num_x)]
   
-plt.hist(angle_vec_from_data, bins=500, density=True, histtype='step',color=lc[0], label='hist')
+plt.hist(angle_vec_from_data, bins=1000, density=True, histtype='step',color=lc[0], label='hist')
 plt.plot(theta_vec, true_density,color=lc[1], linestyle='-', label='true density')
 fig.tight_layout()
 ax.legend(bbox_to_anchor=(0.5, 0, 0.5, 0.5))

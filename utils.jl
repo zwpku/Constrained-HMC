@@ -57,8 +57,8 @@ function find_solution_by_newton(xtmp, grad_xi_vec)
   end
   if norm(b) < newton_res_tol
     return reshape(lam, k, 1)
-  else 
-    return []
+  else # return empty set, no solution has been found
+    return Array{Float64}(undef, 0, 0)
   end
 end
 
@@ -69,7 +69,16 @@ function find_solutions_total_degreee(p_current)
   # according to the package's usage, Total Degree Homotopy is used.
   result_p = solve(F_p)
   # record the solutions
-  S_p = solutions(result_p; only_real=true)
+  S_p = solutions(result_p; only_real=true, real_tol=1e-8)
+  for i in 2:length(S_p)
+    for j in 1:(i-1)
+      if euclidean_distance(S_p[i], S_p[j]) < new_sol_tol
+        println("Warning: two solutions are really close!")
+        println("1:", S_p[i])
+        println("2:", S_p[j])
+      end
+    end
+  end
   return S_p
 end
 
@@ -88,6 +97,7 @@ function find_solutions(p_current, flag)
       S_p = find_solutions_by_tracking(p_current)
     end
   end
+  # check: is the use of length function correct, when k>1?
   n = length(S_p)
   lambda_vec = zeros(k,n)
   # extract the real part

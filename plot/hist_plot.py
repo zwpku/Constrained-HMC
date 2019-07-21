@@ -5,8 +5,8 @@ import numpy as np
 import math
 
 working_dir_name = '../'
-job_id = 1
-dim = 3
+job_id = 4
+dim = 2
 lc = ['b', 'r', 'k', 'c', 'm', 'y']
 
 data_file_name = '%s/data/data_%d.txt' % (working_dir_name, job_id)
