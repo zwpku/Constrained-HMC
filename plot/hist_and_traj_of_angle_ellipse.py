@@ -6,11 +6,11 @@ import math
 
 def U(theta):
   x0 = c * math.cos(theta)
-  return 0.0
-#  return 2.0 * x0**2
+#  return 0.0
+  return 2.0 * x0**2
 
 working_dir_name = '../'
-job_id = 4
+job_id = 6
 dim = 2
 output_every_k = 500
 c = 3.0

@@ -150,7 +150,7 @@ stat_num_of_solution_backward = zeros(max_no_sol+1)
 if use_homotopy_solver_frequency > 0
   # initialize the vector pj_vec 
   if user_defined_pj_flag == 1
-    pj_vec = [[1.0], [1.0, 0.0], [0.6, 0.3, 0.1], [0.6, 0.2, 0.1, 0.1]]
+    pj_vec = [[1.0], [0.0, 1.0], [0.6, 0.3, 0.1], [0.6, 0.2, 0.1, 0.1]]
   else #uniform distribution
     pj_vec = [[1.0 / i for j in 1:i] for i in 1:max_no_sol]
   end

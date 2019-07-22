@@ -2,7 +2,7 @@
 # this file contains values of parameters that are used in the code.
 # ************************************
 #
-job_id : 4
+job_id : 6
 
 model_file_name : ellipse.jl
 #model_file_name : ellipse_in_3d.jl
@@ -18,15 +18,17 @@ step_size : 0.4
 check_rattle_flag : 1
 # tolerance error
 check_tol : 1e-6
+# When Newton's method is used, the tolerence in backward check should be set properly, 
+# depending on the tolerance in Mewton's method
 backward_check_tol : 1e-7
 new_sol_tol : 1e-6
 
-newton_res_tol : 1e-9
+newton_res_tol : 1e-8
 newton_max_steps : 10
 
 # how often to solve equation by homotopy method
 # Newton's method with be used otherwise
-use_homotopy_solver_frequency : 0
+use_homotopy_solver_frequency : 1
 
 # the code will be slower, without PathTracking
 path_tracking_flag : 1

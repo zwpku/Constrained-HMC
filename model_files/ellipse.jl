@@ -16,14 +16,14 @@ x0 = [3.0, 0.0]
 
 # potential in the target distribution
 function V(x)
-#  return 2.0 * x[1] * x[1]
-  return 0.0 
+  return 2.0 * x[1] * x[1]
+#  return 0.0 
 end
 
 # gradient of the potential V(x)
 function grad_V(x)
-#  return [4.0 * x[1], 0.0]
-  return [0.0, 0.0]
+  return [4.0 * x[1], 0.0]
+#  return [0.0, 0.0]
 end
 
 # the ith component \xi_i of the map \xi
