@@ -53,6 +53,7 @@ max_no_sol = cfg_data["max_no_sol"]
 # if Newton's solver is used
 if use_homotopy_solver_frequency != 1
   # read parameters for Newton's solver
+  newton_matrix_solver_tol = cfg_data["newton_matrix_solver_tol"]
   newton_res_tol = cfg_data["newton_res_tol"]
   newton_max_steps = cfg_data["newton_max_steps"]
 end

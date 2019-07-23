@@ -10,8 +10,8 @@ def U(theta):
   return 2.0 * x0**2
 
 working_dir_name = '../'
-job_id = 6
-dim = 2
+job_id = 7
+dim = 3
 output_every_k = 500
 c = 3.0
 c2 = c**2
@@ -55,7 +55,7 @@ plt.plot(histcenter, histdata, color=lc[0], linestyle='-', label='hist')
 plt.plot(theta_vec, true_density, color=lc[1], linestyle='-', label='true density')
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
-plt.legend(bbox_to_anchor=(0.5, 0, 0.5, 0.5), fontsize=18)
+plt.legend(bbox_to_anchor=(0.3, 0.5, 0.5, 0.5), fontsize=18)
 fig.tight_layout()
 out_fig_name = '%s/fig/hist_ellipse_angle_%d.eps' % (working_dir_name, job_id)
 fig.savefig(out_fig_name)

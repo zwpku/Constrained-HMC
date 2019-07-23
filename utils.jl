@@ -50,7 +50,7 @@ function find_solution_by_newton(xtmp, grad_xi_vec)
   iter = 0
   while norm(b) > newton_res_tol && iter < newton_max_steps
     mat = grad_xi(x_now) * transpose(grad_xi_vec)
-    lam += -1.0 * lsmr(mat, b) / step_size 
+    lam += -1.0 * lsmr(mat, b, atol=newton_matrix_solver_tol, btol=newton_matrix_solver_tol) / step_size 
     x_now = xtmp + step_size * transpose(grad_xi_vec) * lam
     b = xi(x_now)
     iter += 1

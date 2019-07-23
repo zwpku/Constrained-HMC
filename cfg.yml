@@ -2,10 +2,10 @@
 # this file contains values of parameters that are used in the code.
 # ************************************
 #
-job_id : 6
+job_id : 7
 
-model_file_name : ellipse.jl
-#model_file_name : ellipse_in_3d.jl
+#model_file_name : ellipse.jl
+model_file_name : ellipse_in_3d.jl
 
 # whether the manifold is algebraic, 
 # or, equivalently, whether the function \xi is polynomial 
@@ -23,18 +23,21 @@ check_tol : 1e-6
 backward_check_tol : 1e-7
 new_sol_tol : 1e-6
 
+# tolerance of the matrix problem in each Newton's step
+newton_matrix_solver_tol : 1e-8
+# tolerance of Newton's method
 newton_res_tol : 1e-8
 newton_max_steps : 10
 
 # how often to solve equation by homotopy method
 # Newton's method with be used otherwise
-use_homotopy_solver_frequency : 1
+use_homotopy_solver_frequency : 100
 
 # the code will be slower, without PathTracking
 path_tracking_flag : 1
 
 # total number of samples 
-N : 500000
+N : 100000
 
 # upper bound of solution number, here we assume there are at most 4 solutions
 max_no_sol : 4

@@ -68,9 +68,10 @@ function forward_rattle(x, v, use_newton_flag)
     grad_xi_vec_1 = grad_xi(x_1)
     mat_v_tmp = grad_xi_vec_1 * transpose(grad_xi_vec_1)
     # directly compute the Lagrange multiplier lam_v, by solving a linear system
+    # Note: matrix inversion may be numerically problematic, when k is large! Consider replacing it by iterative solver, such as lsmr.
     lam_v = - inv(mat_v_tmp) * grad_xi_vec_1 * v_tmp 
     # compute the updated velocity v^1
-    v_1 = v_tmp + grad_xi_vec_1[1,:] * lam_v[1]
+    v_1 = v_tmp + transpose(grad_xi_vec_1) * lam_v
     return n, pj, x_1, v_1
   end # no solutions are found, if we reach here
   return 0, 0, x, v
