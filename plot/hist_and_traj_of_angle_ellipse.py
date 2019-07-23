@@ -32,7 +32,7 @@ for i in range(N):
 xx = range(0, N, output_every_k)
 plt.plot(xx, angle_vec_from_data[::output_every_k], color=lc[0], linestyle='-', label=r'$\theta$')
 fig.tight_layout()
-ax.legend(bbox_to_anchor=(0.5, 0, 0.5, 0.5))
+plt.legend(bbox_to_anchor=(0.5, 0, 0.5, 0.5))
 out_fig_name = '%s/fig/traj_ellipse_angle_%d.eps' % (working_dir_name, job_id)
 fig.savefig(out_fig_name)
 
@@ -47,10 +47,13 @@ for i in range(num_x):
   true_density[i] = math.exp(-U(theta_vec[i])) * math.sqrt(c2 * math.sin(theta_vec[i])**2 + math.cos(theta_vec[i])**2)
   norm_z += true_density[i] * dtheta
 true_density = [true_density[i] / norm_z for i in range(num_x)]
-  
-plt.hist(angle_vec_from_data, bins=100, density=True, histtype='step',color=lc[0], label='hist')
-plt.plot(theta_vec, true_density,color=lc[1], linestyle='-', label='true density')
+
+histdata, histedge = np.histogram(angle_vec_from_data, bins=100, density=True)
+histcenter = (histedge[:-1] + histedge[1:]) * 0.5
+
+plt.plot(histcenter, histdata, color=lc[0], linestyle='-', label='hist')
+plt.plot(theta_vec, true_density, color=lc[1], linestyle='-', label='true density')
+plt.legend(bbox_to_anchor=(0.5, 0, 0.5, 0.5))
 fig.tight_layout()
-ax.legend(bbox_to_anchor=(0.5, 0, 0.5, 0.5))
 out_fig_name = '%s/fig/hist_ellipse_angle_%d.eps' % (working_dir_name, job_id)
 fig.savefig(out_fig_name)
