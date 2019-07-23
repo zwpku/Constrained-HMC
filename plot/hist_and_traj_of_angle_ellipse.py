@@ -53,7 +53,9 @@ histcenter = (histedge[:-1] + histedge[1:]) * 0.5
 
 plt.plot(histcenter, histdata, color=lc[0], linestyle='-', label='hist')
 plt.plot(theta_vec, true_density, color=lc[1], linestyle='-', label='true density')
-plt.legend(bbox_to_anchor=(0.5, 0, 0.5, 0.5))
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.legend(bbox_to_anchor=(0.5, 0, 0.5, 0.5), fontsize=18)
 fig.tight_layout()
 out_fig_name = '%s/fig/hist_ellipse_angle_%d.eps' % (working_dir_name, job_id)
 fig.savefig(out_fig_name)
