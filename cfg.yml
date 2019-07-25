@@ -4,12 +4,12 @@
 #
 job_id : 7
 
-#model_file_name : ellipse.jl
-model_file_name : ellipse_in_3d.jl
+model_file_name : ellipse.jl
+#model_file_name : ellipse_in_3d.jl
 
-# whether the manifold is algebraic, 
-# or, equivalently, whether the function \xi is polynomial 
-is_algebraic_manifold_flag : 1
+# the degree of the the constraint equation when it is polynomial.
+# it equals zero when it is not polynomial!
+degree_polynomial_constraint : 2
 
 # the stepsize \tau used in the proposal scheme
 step_size : 0.4
@@ -21,7 +21,6 @@ check_tol : 1e-6
 # When Newton's method is used, the tolerence in backward check should be set properly, 
 # depending on the tolerance in Mewton's method
 backward_check_tol : 1e-7
-new_sol_tol : 1e-6
 
 # tolerance of the matrix problem in each Newton's step
 newton_matrix_solver_tol : 1e-8
@@ -29,20 +28,27 @@ newton_matrix_solver_tol : 1e-8
 newton_res_tol : 1e-8
 newton_max_steps : 10
 
-# how often to solve equation by homotopy method
-# Newton's method with be used otherwise
-use_homotopy_solver_frequency : 100
-
+# how often to solve multiple solutions of the constraint equation.
+# Newton's method will be used otherwise
+solve_multiple_solutions_frequency : 1
+# whether HomotopyContinuation package will be used.
+solve_multiple_solutions_by_homotopy : 1
 # the code will be slower, without PathTracking
-path_tracking_flag : 1
+path_tracking_in_homotopy_flag : 1
+# In HomotopyContinuation, a solution will be consider to be new solution, if the difference is larger
+# than this tolerance.
+homotopy_new_sol_tol : 1e-6
+
+# the tolerance used in PolynomialRoots 
+polyroot_solver_eps : 1e-12
 
 # total number of samples 
 N : 100000
 
 # upper bound of solution number, here we assume there are at most 4 solutions
+# it should be no less than the degree of the polynomial. 
 max_no_sol : 4
 
 # if this flag is one, indices are chosen according to the 
 # pre-defined probability distributions, based on their distances.
 user_defined_pj_flag : 0
-

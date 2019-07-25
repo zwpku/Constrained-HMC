@@ -25,33 +25,54 @@ backward_check_tol = cfg_data["backward_check_tol"]
 # check the forward scheme and print information, if the flag equals 1.
 check_rattle_flag = cfg_data["check_rattle_flag"]
 
-# whether the manifold is algebraic, 
-# or, equivalently, whether the function \xi is polynomial 
-is_algebraic_manifold_flag = cfg_data["is_algebraic_manifold_flag"]
+# the degree of the the constraint equation when it is polynomial.
+# it equals zero when it is not polynomial!
+degree_polynomial_constraint = cfg_data["degree_polynomial_constraint"]
 
-# how often to solve equation by homotopy method
+# how often to solve multiple solutions of the constraint equation 
 # Newton's method with be used otherwise
-use_homotopy_solver_frequency = cfg_data["use_homotopy_solver_frequency"]
+solve_multiple_solutions_frequency = cfg_data["solve_multiple_solutions_frequency"]
 
-# always use Newton's method, if \xi is not polynomial
-if is_algebraic_manifold_flag == 0 && use_homotopy_solver_frequency > 0
-  println("Warning: Newton's method will be always used, because manifold is not algebraic!")
-  println("\t reset use_homotopy_solver_frequency to zero!")
-  use_homotopy_solver_frequency = 0
+# whether use HomotopyContinuation package or not 
+solve_multiple_solutions_by_homotopy = cfg_data["solve_multiple_solutions_by_homotopy"]
+
+# always use Newton's method, if the constraint equation is not polynomial
+if degree_polynomial_constraint == 0 && solve_multiple_solutions_frequency > 0
+  println("Warning: Newton's method will be always used, because the constraint is not polynomial")
+  println("\t reset solve_multiple_solutions_frequency to zero!")
+  solve_multiple_solutions_frequency = 0
 end
 
-# if homotopy method will be used
-if use_homotopy_solver_frequency > 0
-  new_sol_tol = cfg_data["new_sol_tol"] 
-# the code will be slower, without PathTracking
-  path_tracking_flag = cfg_data["path_tracking_flag"]
-# upper bound of solution number, here we assume there are at most 4 solutions
+@printf("Include model from file: %s\n\n", model_file_name)
+
+include(model_file_name)
+
+if solve_multiple_solutions_frequency > 0
+  if k > 1 && solve_multiple_solutions_by_homotopy == 0
+    @printf("Warning: constraint equations will be solved by HomotopyContinuation package because k=%d is large than 1.", k)
+    println("\t reset solve_multiple_solutions_by_homotopy to 1")
+    solve_multiple_solutions_by_homotopy = 1
+  end
+  # if homotopy method will be used
+  if solve_multiple_solutions_by_homotopy == 1
+    homotopy_new_sol_tol = cfg_data["homotopy_new_sol_tol"] 
+  # the code will be slower, without PathTracking
+    path_tracking_in_homotopy_flag = cfg_data["path_tracking_in_homotopy_flag"]
+  else # solve scalar constraint equation by PolynomialRoots package.
+    polyroot_solver_eps = cfg_data["polyroot_solver_eps"]
+  end
 end
 
+# upper bound of solution number
 max_no_sol = cfg_data["max_no_sol"]
+if max_no_sol < degree_polynomial_constraint 
+  println("Warning: max_no_sol should be no less than the degree of the polynomial!")
+  @printf("\t reset max_no_sol to %d.", degree_polynomial_constraint)
+  max_no_sol = degree_polynomial_constraint 
+end
 
-# if Newton's solver is used
-if use_homotopy_solver_frequency != 1
+# when Newton's solver will be used
+if solve_multiple_solutions_frequency != 1
   # read parameters for Newton's solver
   newton_matrix_solver_tol = cfg_data["newton_matrix_solver_tol"]
   newton_res_tol = cfg_data["newton_res_tol"]

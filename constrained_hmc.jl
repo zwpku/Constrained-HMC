@@ -1,4 +1,5 @@
 using HomotopyContinuation, DynamicPolynomials
+using PolynomialRoots
 using LinearAlgebra
 using IterativeSolvers 
 using PyPlot
@@ -6,10 +7,6 @@ using DelimitedFiles
 using Printf
 
 include("read_params.jl")
-
-@printf("Include model from file: %s\n\n", model_file_name)
-
-include(model_file_name)
 
 include("utils.jl")
 
@@ -23,10 +20,10 @@ function forward_rattle(x, v, use_newton_flag)
   # find Lagrange multipliers for x
   if use_newton_flag == 1 # by Newton's method
     lam_x = find_solution_by_newton(x_tmp, grad_xi_vec)
-  else  # by HomotopyContinuation
+  else  # find multiple solutions 
     # be careful how the parameters are ordered in p
     p = vcat(x_tmp, step_size * reshape(transpose(grad_xi_vec), length(grad_xi_vec), 1)[:,1])
-    lam_x = find_solutions(p, use_newton_flag)
+    lam_x = find_multiple_solutions(p, use_newton_flag)
   end
   n = size(lam_x, 2)
   # if we find at least one solutions
@@ -86,10 +83,10 @@ function backward_check(x1, v1, x, v, use_newton_flag)
   x_tmp = x1 + step_size * v1 + coeff * grad_pot_vec 
   if use_newton_flag == 1 # by Newton's method
     lam_x = find_solution_by_newton(x_tmp, grad_xi_vec)
-  else  # by HomotopyContinuation
+  else  # find multiple solutions
     # be careful how the parameters are ordered in p
     p = vcat(x_tmp, step_size * reshape(transpose(grad_xi_vec), length(grad_xi_vec), 1)[:,1]) 
-    lam_x = find_solutions(p, use_newton_flag)
+    lam_x = find_multiple_solutions(p, use_newton_flag)
   end
   n_back = size(lam_x, 2)
   backward_found_flag = 0
@@ -147,8 +144,8 @@ stat_average_distance = 0
 stat_num_of_solution_forward = zeros(max_no_sol+1)
 stat_num_of_solution_backward = zeros(max_no_sol+1)
 
-# when mutilple solutions can be found
-if use_homotopy_solver_frequency > 0
+# when mutilple solutions will be solved 
+if solve_multiple_solutions_frequency > 0
   # initialize the vector pj_vec 
   if user_defined_pj_flag == 1
     pj_vec = [[1.0], [0.0, 1.0], [0.6, 0.3, 0.1], [0.6, 0.2, 0.1, 0.1]]
@@ -159,7 +156,8 @@ if use_homotopy_solver_frequency > 0
   for i in 1:max_no_sol
     pj_acc_vec[i] = cumsum(pj_vec[i])
   end
-  if path_tracking_flag > 0 # prepare the start system
+  if solve_multiple_solutions_by_homotopy == 1 && path_tracking_in_homotopy_flag > 0 
+    # prepare the start system
     global num_sol_start_system = 0
     # find a system as many solutions as possible
     for i in 1:10
@@ -189,7 +187,7 @@ for i in 1:N
   v0 = rand_draw_velocity(x0)
   # save the current state
   sample_data[i] = vcat(x0, v0)
-  if use_homotopy_solver_frequency > 0 && i % use_homotopy_solver_frequency == 0
+  if solve_multiple_solutions_frequency > 0 && i % solve_multiple_solutions_frequency == 0
     use_newton_flag = 0
   else 
     use_newton_flag = 1

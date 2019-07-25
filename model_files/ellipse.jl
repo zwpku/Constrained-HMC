@@ -36,7 +36,8 @@ function grad_xi_i(x, idx)
   return [x[1] / c2 , x[2]]
 end
 
-if use_homotopy_solver_frequency > 0
+if solve_multiple_solutions_frequency > 0 
+  # initialize constraint equation for HomotopyContinuation
   @polyvar lam[1:k] p[1:((1+k)*d)]  
 
   # equations of the Lagrange multipliers, p contains parameters, lam is the unknown multipliers

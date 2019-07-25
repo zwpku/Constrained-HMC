@@ -29,7 +29,7 @@ function find_solutions_by_tracking(p)
 	 # check if the solution is new 
 	 new_sol_flag = 1
 	 for i in 1:length(S_p)
-	    if euclidean_distance(S_p[i], sol) < new_sol_tol
+	    if euclidean_distance(S_p[i], sol) < homotopy_new_sol_tol
 	      new_sol_flag = 0
 	      break
 	    end
@@ -62,7 +62,7 @@ function find_solution_by_newton(xtmp, grad_xi_vec)
   end
 end
 
-# solve equations without path tracking
+# solve equations using HomotopyContinuation, but without path tracking
 function find_solutions_total_degreee(p_current)
   F_p = subs(F, p => p_current)
   # Compute all solutions for F_p  
@@ -73,30 +73,46 @@ function find_solutions_total_degreee(p_current)
   return S_p
 end
 
-function find_solutions(p_current, flag)
-  if path_tracking_flag == 0
-    S_p = find_solutions_total_degreee(p_current)
-  else 
-    if flag == -1 # prepare the start system 
+function find_multiple_solutions(p_current, flag)
+  if solve_multiple_solutions_by_homotopy == 1 
+    if path_tracking_in_homotopy_flag == 0
       S_p = find_solutions_total_degreee(p_current)
-      # update the start system, if we find a new one which has more solutions
-      if length(S_p) > num_sol_start_system 
-	# record the solutions
-	global S_p0 = S_p
-	#Construct the PathTracker
-	global tracker = pathtracker(F; parameters=p, generic_parameters=p_current)
-	global num_sol_start_system = length(S_p0)
-      end
     else 
-      S_p = find_solutions_by_tracking(p_current)
+      if flag == -1 # prepare the start system 
+	S_p = find_solutions_total_degreee(p_current)
+	# update the start system, if we find a new one which has more solutions
+	if length(S_p) > num_sol_start_system 
+	  # record the solutions
+	  global S_p0 = S_p
+	  #Construct the PathTracker
+	  global tracker = pathtracker(F; parameters=p, generic_parameters=p_current)
+	  global num_sol_start_system = length(S_p0)
+	end
+      else 
+	S_p = find_solutions_by_tracking(p_current)
+      end
     end
-  end
-  # check: is the use of length function correct, when k>1?
-  n = length(S_p)
-  lambda_vec = zeros(k,n)
-  # extract the real part
-  for i in 1:n
-    lambda_vec[:,i] = [S_p[i][j].re for j in 1:k]
+    # check: is the use of length function correct, when k>1?
+    n = length(S_p)
+    lambda_vec = zeros(k,n)
+    # extract the real part
+    for i in 1:n
+      lambda_vec[:,i] = [S_p[i][j].re for j in 1:k]
+    end
+  else #instead of using HomotopyContinuation, we use PolynomialRoots package (for k=1)
+    # compute the coefficients of polynomial 
+    poly = subs(F, p => p_current)
+    # there is only one equation, i.e., k=1
+    coeff_vec = reverse(poly[1].a)
+    # solve the roots
+    roots_vec = roots(coeff_vec, epsilon=polyroot_solver_eps)
+    sol_vec = []
+    for sol in roots_vec
+      if abs(sol.im) < 1e-8 
+        push!(sol_vec, sol.re)
+      end
+    end
+    lambda_vec = reshape(sol_vec, 1, length(sol_vec))
   end
   return lambda_vec
 end
