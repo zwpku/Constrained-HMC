@@ -4,12 +4,13 @@
 #
 job_id : 7
 
-model_file_name : ellipse.jl
+model_file_name : 3d_torus.jl
+#model_file_name : ellipse.jl
 #model_file_name : ellipse_in_3d.jl
 
 # the degree of the the constraint equation when it is polynomial.
-# it equals zero when it is not polynomial!
-degree_polynomial_constraint : 2
+# set it to zero, if it is not polynomial!
+degree_polynomial_constraint : 4
 
 # the stepsize \tau used in the proposal scheme
 step_size : 0.4
@@ -43,7 +44,7 @@ homotopy_new_sol_tol : 1e-6
 polyroot_solver_eps : 1e-12
 
 # total number of samples 
-N : 100000
+N : 500000
 
 # upper bound of solution number, here we assume there are at most 4 solutions
 # it should be no less than the degree of the polynomial. 

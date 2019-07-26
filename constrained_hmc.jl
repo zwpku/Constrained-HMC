@@ -239,7 +239,13 @@ end
 
 @printf("\nForward_success_counter = %d\nBackward_success_counter = %d\nAverage MH rate = %.3f\nAverage jump distance = %.3f\n", forward_success_counter, backward_success_counter, stat_success_counter * 1.0 / N, stat_average_distance * 1.0 / stat_success_counter)
 
-@printf("\nNo. of steps using Newton's method: %d\nNo. of steps using Homotopy method: %d\n", newton_counter, N - newton_counter)
+@printf("\nNo. of steps using Newton's method: %d\n", newton_counter)
+
+if solve_multiple_solutions_by_homotopy == 1
+  @printf("No. of steps using HomotopyContinuation pacage: %d\n", N - newton_counter)
+else 
+  @printf("No. of steps using PolynomialRoots package: %d\n", N - newton_counter)
+end
 
 println("\nNo. of solutions in forward rattle:")
 for i in 1:(max_no_sol+1)
