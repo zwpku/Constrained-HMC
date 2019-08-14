@@ -6,8 +6,8 @@
   width=7cm,
   compat=1.15,
   /pgf/declare function= {
-   w1(\x,\y,\z) = (\y-4)^2;
-   w2(\x,\y,\z) = \y^2;
+    w1(\x,\y,\z) = exp(-0.5 * (\y-4)^2);
+   w2(\x,\y,\z) = exp(-0.5* \x^2); 
  },
 }
 \begin{document}
