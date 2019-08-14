@@ -2,18 +2,20 @@
 \usepackage{pgfplots}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
+\usetikzlibrary{calc}
 \pgfplotsset{
-  width=7cm,
   compat=1.15,
   /pgf/declare function= {
-    w1(\x,\y,\z) = exp(-0.5 * (\y-4)^2);
+    w1(\x,\y,\z) = exp(-0.5 * (\y+4)^2);
    w2(\x,\y,\z) = exp(-0.5* \x^2); 
  },
 }
 \begin{document}
 \begin{tikzpicture}
-  \matrix {
   \begin{axis} [
+      height=8cm,
+      width=8cm,
+      name=plot1,
       xlabel=x,
       ylabel=y,
       zlabel=z,
@@ -29,6 +31,8 @@
       y tick label style={yshift=0.5em},
       y label style={yshift=0.5em, xshift=0.5em},
       z label style={yshift=-1.0em, xshift=0.5em},
+      point meta min=0,
+      point meta max=1,
       grid=major
     ]
      \addplot3[
@@ -46,8 +50,12 @@
          {sin(deg(x))}
        );
   \end{axis}
-    &
   \begin{axis} [
+      name=plot2,
+      height=8cm,
+      width=8cm,
+      at={($(plot1.east)+(1.3cm,0)$)},
+      anchor=west,
       xlabel=x,
       ylabel=y,
       zlabel=z,
@@ -63,6 +71,8 @@
       y tick label style={yshift=0.5em},
       y label style={yshift=0.5em, xshift=0.5em},
       z label style={yshift=-1.0em, xshift=0.5em},
+      point meta min=0,
+      point meta max=1,
       grid=major
     ]
      \addplot3[
@@ -79,8 +89,20 @@
          {(3+cos(deg(x)))*sin(deg(y+pi/2))}, 
          {sin(deg(x))}
        );
-  \end{axis}\\
-  };
+  \end{axis}
+  \begin{axis} [
+      hide axis,
+      colormap/hot,
+      colorbar horizontal,
+      point meta min=0,
+      point meta max=1,
+      colorbar style={
+	width=10.5cm,
+	at={($(plot1.south)+(-1.6cm,-1cm)$)},
+      }
+    ]
+  \addplot[draw=none] coordinates {(0,0)};
+  \end{axis}
 \end{tikzpicture}
 \end{document}
 
