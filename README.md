@@ -6,9 +6,10 @@ Monte Carlo sampler on submanifolds
 
 - [HomotopyContinuation](https://www.juliahomotopycontinuation.org/) 
 - [DynamicPolynomials](https://github.com/JuliaAlgebra/DynamicPolynomials.jl) 
+
 The above two packages are used to solve multiple solutions of polynomial contraint equations when the submanifold is algebraic.
 - [PolynomialRoots](https://github.com/giordano/PolynomialRoots.jl), used to
-  find all root of a polynomial equation.
+  find all root of a (scalar) polynomial equation.
 - [IterativeSolvers](https://github.com/JuliaMath/IterativeSolvers.jl), used
   to solve matrix systems for veolocity constraints.
 - [YAML](https://github.com/BioJulia/YAML.jl), used to parse the configure file [cfg.yml](./cfg.yml).
