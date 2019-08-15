@@ -4,15 +4,16 @@ Monte Carlo sampler on submanifolds
 ## PREPARE
 #### 1. Install the following dependent Julia libraries. 
 
-- [HomotopyContinuation](https://www.juliahomotopycontinuation.org/), used to solve multiple solutions of polynomial contraint equations when the submanifold is algebraic.
+- [HomotopyContinuation](https://www.juliahomotopycontinuation.org/) 
 - [DynamicPolynomials](https://github.com/JuliaAlgebra/DynamicPolynomials.jl) 
+The above two packages are used to solve multiple solutions of polynomial contraint equations when the submanifold is algebraic.
 - [PolynomialRoots](https://github.com/giordano/PolynomialRoots.jl), used to
   find all root of a polynomial equation.
-- [LinearAlgebra](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/index.html)
 - [IterativeSolvers](https://github.com/JuliaMath/IterativeSolvers.jl), used
   to solve matrix systems for veolocity constraints.
-- [PyPlot](https://github.com/JuliaPy/PyPlot.jl)
 - [YAML](https://github.com/BioJulia/YAML.jl), used to parse the configure file [cfg.yml](./cfg.yml).
+- [LinearAlgebra](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/index.html)
+- [PyPlot](https://github.com/JuliaPy/PyPlot.jl)
 
 For example, the HomotopyContinuation package can be installed as follows.
 
