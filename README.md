@@ -10,6 +10,7 @@ Monte Carlo sampler on submanifolds
 - [LinearAlgebra](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/index.html)
 - [IterativeSolvers](https://github.com/JuliaMath/IterativeSolvers.jl)
 - [PyPlot](https://github.com/JuliaPy/PyPlot.jl)
+- [YAML](https://github.com/BioJulia/YAML.jl)
 
 For example, the HomotopyContinuation package can be installed as follows.
 
@@ -46,12 +47,9 @@ In particular, the model file created in step 2 should be provided to the parame
       model_file_name : 3d_torus.jl
 ```
 
-#### 4. Run the code.
+#### 4. Run.
 
 ```
     julia constrained_hmc.jl
 ```
-
-
-
 
