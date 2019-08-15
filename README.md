@@ -2,7 +2,7 @@
 Monte Carlo sampler on submanifolds
 
 ## PREPARE
-###1. Install dependent julia libraries, if necessary. 
+### 1. Install dependent julia libraries, if necessary. 
 
 The following Julia packages are required.
 
