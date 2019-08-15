@@ -13,7 +13,7 @@ model_file_name : 3d_torus.jl
 degree_polynomial_constraint : 4
 
 # the stepsize \tau used in the proposal scheme
-step_size : 0.4
+step_size : 0.5
 
 # check the forward scheme and print information, if the flag equals 1.
 check_rattle_flag : 1
@@ -30,8 +30,8 @@ newton_res_tol : 1e-8
 newton_max_steps : 10
 
 # how often to solve multiple solutions of the constraint equation.
-# Newton's method will be used otherwise
-solve_multiple_solutions_frequency : 1
+# Newton's method will be used, if it equals 0
+solve_multiple_solutions_frequency : 0
 # whether HomotopyContinuation package will be used.
 solve_multiple_solutions_by_homotopy : 1
 # the code will be slower, without PathTracking

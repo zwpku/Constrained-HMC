@@ -29,7 +29,7 @@ end
 # the ith component \xi_i of the map \xi.
 # In this example, \xi is scalar and therefore i=1.
 # There are different choices of \xi whose zero levelset is 3d-torus. Here, we choose 
-# \xi such that it is a 4th order polynomial.
+# \xi such that it is a fourth order polynomial.
 function xi_i(x, idx)
   return (R^2 - r^2 + x[1]^2 + x[2]^2 + x[3]^2)^2 - 4 * R^2 * (x[1]^2 + x[2]^2)
 end

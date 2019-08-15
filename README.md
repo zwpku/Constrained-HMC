@@ -1,7 +1,7 @@
 # Constrained-HMC
 Monte Carlo sampler on submanifolds
 
-## PREPARE
+## Prepare
 #### 1. Install the following dependent Julia libraries. 
 
 - [HomotopyContinuation](https://www.juliahomotopycontinuation.org/), 
@@ -29,7 +29,7 @@ For example, the HomotopyContinuation package can be installed as follows.
 
    Afterwards, the code should be available in the directory ./Constrained-HMC
 
-## USAGE
+## Usage
 
 #### 1. Enter the directory containing source files. 
 

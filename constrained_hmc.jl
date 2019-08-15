@@ -178,11 +178,16 @@ if solve_multiple_solutions_frequency > 0
   end
 end
 
+@printf("\nSampling started... \n")
+
 # count the runtime 
 @time begin
 # the main loop 
 for i in 1:N
   global x0, v0, forward_success_counter, backward_success_counter, stat_success_counter, stat_num_of_solution_forward, stat_num_of_solution_backward, stat_average_distance
+  if i % (div(N, 10)) == 0
+    @printf(" Step %d, %.1f%% finished.\n", i, i * 100 / N)
+  end 
   # first of all, randomly update the velocity 
   v0 = rand_draw_velocity(x0)
   # save the current state
@@ -235,14 +240,20 @@ end
 # time end
 end
 
+@printf("Sampling finished.\n")
 # print statistics of the computation
 
-@printf("\nForward_success_counter = %d\nBackward_success_counter = %d\nAverage MH rate = %.3f\nAverage jump distance = %.3f\n", forward_success_counter, backward_success_counter, stat_success_counter * 1.0 / N, stat_average_distance * 1.0 / stat_success_counter)
+@printf("\n========== Statistics ==========")
+
+@printf("\nForward_success_counter = %d (%.1f%%)\nBackward_success_counter = %d (%.1f%%)\n", forward_success_counter, forward_success_counter * 100 / N, backward_success_counter, backward_success_counter * 100 / forward_success_counter)
+
+@printf("Average MH rate = %.3f\nTotal successful jump rate = %.3f\nAverage jump distance (including no jump)= %.3f (%.3f)\n", stat_success_counter * 1.0 / backward_success_counter, stat_success_counter / N,
+	stat_average_distance * 1.0 / stat_success_counter, stat_average_distance * 1.0 / N)
 
 @printf("\nNo. of steps using Newton's method: %d\n", newton_counter)
 
 if solve_multiple_solutions_by_homotopy == 1
-  @printf("No. of steps using HomotopyContinuation pacage: %d\n", N - newton_counter)
+  @printf("No. of steps using HomotopyContinuation package: %d\n", N - newton_counter)
 else 
   @printf("No. of steps using PolynomialRoots package: %d\n", N - newton_counter)
 end
@@ -250,14 +261,14 @@ end
 println("\nNo. of solutions in forward rattle:")
 for i in 1:(max_no_sol+1)
   if stat_num_of_solution_forward[i] > 0
-    @printf("\t%d solutions: %d\n", i-1, stat_num_of_solution_forward[i])
+    @printf("\t%d solutions: %d (%.1f%%)\n", i-1, stat_num_of_solution_forward[i], stat_num_of_solution_forward[i] * 100 / N)
   end
 end
 
 println("\nNo. of solutions in backward check:")
 for i in 1:(max_no_sol+1)
   if stat_num_of_solution_backward[i] > 0
-    @printf("\t%d solutions: %d\n", i-1, stat_num_of_solution_backward[i])
+    @printf("\t%d solutions: %d (%.1f%%)\n", i-1, stat_num_of_solution_backward[i], stat_num_of_solution_backward[i] * 100 / forward_success_counter)
   end
 end
 
