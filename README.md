@@ -35,12 +35,14 @@ For example, the HomotopyContinuation package can be installed as follows.
 ```
 
 #### 2. Create a model file. 
+
       It is necessary to specify the model (e.g., parameters, potentials, mapping
       whose zero levelset defines the submanifold) in order to run the code. This can
       be done by creating a file under [./model_files](./model_files) directory, where several model files 
       can be found and used as templates.
 
 #### 3. Set and check the configure parameters in [cfg.yml](./cfg.yml).
+
       In particular, the model file created in step 2 should be provided to
       the parameter: model_file_name. 
       
