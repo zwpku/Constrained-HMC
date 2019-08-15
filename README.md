@@ -6,12 +6,12 @@ Monte Carlo sampler on submanifolds
 
 The following Julia packages are required.
 
-- [HomotopyContinuation.jl](https://www.juliahomotopycontinuation.org/)
-- DynamicPolynomials 
-- PolynomialRoots 
-- LinearAlgebra 
-- IterativeSolvers 
-- PyPlot
+- [HomotopyContinuation](https://www.juliahomotopycontinuation.org/)
+- [DynamicPolynomials](https://github.com/JuliaAlgebra/DynamicPolynomials.jl)
+- [PolynomialRoots](https://github.com/giordano/PolynomialRoots.jl)
+- [LinearAlgebra]
+- [IterativeSolvers](https://github.com/JuliaMath/IterativeSolvers.jl)
+- [PyPlot](https://github.com/JuliaPy/PyPlot.jl)
 
 For example, HomotopyContinuation.jl package can be installed as follows.
 
@@ -36,4 +36,5 @@ For example, HomotopyContinuation.jl package can be installed as follows.
 ```
   	cd ./Constrained-HMC
 ```
+
 
