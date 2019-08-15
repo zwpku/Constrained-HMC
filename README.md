@@ -2,16 +2,16 @@
 Monte Carlo sampler on submanifolds
 
 ## PREPARE
-1. Install dependent julia libraries, if necessary. 
+###1. Install dependent julia libraries, if necessary. 
 
-To run the code, the following Julia packages are required.
+The following Julia packages are required.
 
--HomotopyContinuation 
--DynamicPolynomials 
--PolynomialRoots 
--LinearAlgebra 
--IterativeSolvers 
--PyPlot
+- HomotopyContinuation 
+- DynamicPolynomials 
+- PolynomialRoots 
+- LinearAlgebra 
+- IterativeSolvers 
+- PyPlot
 
 For example, HomotopyContinuation package can be installed as follows.
 
