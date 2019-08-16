@@ -134,7 +134,8 @@ function rand_draw_velocity(x)
 end
 
 # array to store the samples 
-sample_data = [zeros(2 * d) for i in 1:N]
+sample_data_vec = []
+qoi_data_vec = []
 forward_success_counter = 0
 backward_success_counter = 0
 newton_counter = 0 
@@ -179,6 +180,10 @@ if solve_multiple_solutions_frequency > 0
   end
 end
 
+if num_qoi <= 0
+  @printf("\nWarning: no quantity of interest will be computed (num_qoi = %d)!\n", num_qoi)
+end
+
 @printf("\nSampling started... \n")
 flush(stdout)
 
@@ -193,8 +198,16 @@ for i in 1:N
   end 
   # first of all, randomly update the velocity 
   v0 = rand_draw_velocity(x0)
-  # save the current state
-  sample_data[i] = vcat(x0, v0)
+
+  if i % output_sample_data_frequency == 0 # record the current state for output
+    push!(sample_data_vec, vcat(x0, v0))
+  end
+
+  if num_qoi > 0
+    qoi_val = QoI(x0)
+    push!(qoi_data_vec, qoi_val)
+  end
+
   if solve_multiple_solutions_frequency > 0 && i % solve_multiple_solutions_frequency == 0
     use_newton_flag = 0
   else 
@@ -275,7 +288,12 @@ for i in 1:(max_no_sol+1)
   end
 end
 
-# write the sampled states to the file
-output_file = @sprintf("./data/data_%d.txt", job_id)
-writedlm(output_file, sample_data)
+# write the recorded states to file
+output_file = @sprintf("./traj_data_%d.txt", job_id)
+writedlm(output_file, sample_data_vec)
 
+if num_qoi > 0
+  # write the quantity of interest (QoI) to file
+  output_file = @sprintf("./qoi_data_%d.txt", job_id)
+  writedlm(output_file, qoi_data_vec)
+end

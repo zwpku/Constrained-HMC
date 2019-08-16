@@ -9,10 +9,11 @@ job_id = cfg_data["job_id"]
 # provide filename of the model 
 model_file_name = cfg_data["model_file_name"]
 
-model_file_name = "./model_files/" * model_file_name
-
 # total number of samples 
 N = cfg_data["N"]
+
+# output data frequency
+output_sample_data_frequency = cfg_data["output_sample_data_frequency"]
 
 # the stepsize \tau used in the proposal scheme
 step_size = cfg_data["step_size"] 
@@ -43,9 +44,11 @@ if degree_polynomial_constraint == 0 && solve_multiple_solutions_frequency > 0
   solve_multiple_solutions_frequency = 0
 end
 
-@printf("Include model from file: %s\n\n", model_file_name)
+@printf("Include model from file: ./%s\n\n", model_file_name)
 
-include(model_file_name)
+# assume the model file is under the current directory
+
+include(pwd() * "/" * model_file_name)
 
 if solve_multiple_solutions_frequency > 0
   if k > 1 && solve_multiple_solutions_by_homotopy == 0
