@@ -12,7 +12,7 @@ R = 1.0
 r = 0.5 
 
 # initial state
-x0 = [R, 0.0, r]
+x0 = [R-r, 0.0, 0.0]
 
 # potential in the target distribution
 function V(x)

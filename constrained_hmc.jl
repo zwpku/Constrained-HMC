@@ -171,6 +171,7 @@ if solve_multiple_solutions_frequency > 0
     end
     if num_sol_start_system > 0
       @printf("Starting systems: no. of real solutions = %d\n", length(S_p0))
+      println("Starting systems: x0=", x0)
     else 
       println("Error: couldn't find a start system with nonzero solutions!")
       exit(1)
