@@ -180,6 +180,7 @@ if solve_multiple_solutions_frequency > 0
 end
 
 @printf("\nSampling started... \n")
+flush(stdout)
 
 # count the runtime 
 @time begin
@@ -188,6 +189,7 @@ for i in 1:N
   global x0, v0, forward_success_counter, backward_success_counter, stat_success_counter, stat_num_of_solution_forward, stat_num_of_solution_backward, stat_average_distance
   if i % (div(N, 10)) == 0
     @printf(" Step %d, %.1f%% finished.\n", i, i * 100 / N)
+    flush(stdout)
   end 
   # first of all, randomly update the velocity 
   v0 = rand_draw_velocity(x0)

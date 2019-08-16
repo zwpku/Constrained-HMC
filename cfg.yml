@@ -31,9 +31,9 @@ newton_max_steps : 10
 
 # how often to solve multiple solutions of the constraint equation.
 # Newton's method will be used, if it equals 0
-solve_multiple_solutions_frequency : 1
+solve_multiple_solutions_frequency : 0
 # whether HomotopyContinuation package will be used.
-solve_multiple_solutions_by_homotopy : 1
+solve_multiple_solutions_by_homotopy : 0
 # the code will be slower, without PathTracking
 path_tracking_in_homotopy_flag : 1
 # In HomotopyContinuation, a solution will be consider to be new solution, if the difference is larger
