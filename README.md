@@ -37,22 +37,24 @@ For example, the HomotopyContinuation package can be installed as follows.
   	cd ./Constrained-HMC
 	cp -r working_dir_template working_dir_task1
 ```
-In the example above, we create the directory ./working_dir_task1 by duplicating the template directory ./working_dir_template
+In the example above, the directory ./working_dir_task1 is created by duplicating the template directory [./working_dir_template](./working_dir_template)
 
 #### 2. Create a model file in the working directory. 
 
-It is necessary to specify the model (e.g., parameters, potentials, and the mapping whose zero levelset defines the submanifold) in order to run the code. Several model files are provided under [./model_files](./model_files) directory. They can be used as templates. For example, to sample the 3D torus, we can use
+It is necessary to specify the model (e.g., parameters, potential, and the mapping whose zero level-set defines the submanifold) in order to run the code. Several model files are provided under [./model_files](./model_files) directory and they can be used as templates. For example, to sample the 3D torus, we use
 ```
-    cp ../model_files/3d_torus.jl
+    cd working_dir_task1
+    cp ../model_files/3d_torus.jl .
 ```
 
 #### 3. Create the configure file cfg.yml in the working directory. 
-The file [cfg.yml](./cfg.yml) should be presented under the working directory. A template configure file is provided under [./working_dir_template](./working_dir_template).
-(This step can be skipped if the working directory is duplicated from the [./working_dir_template](./working_dir_template).)
+The file cfg.yml should be prepared under the working directory. A template configure file 
+[cfg.yml](./cfg.yml) is provided under [./working_dir_template](./working_dir_template).
 
-#### 4. Set and check the configure parameters in [cfg.yml](./cfg.yml).
+#### 4. Set and check the configure parameters in the configure file.
 
-In particular, the model file created in step 2 should be provided to the parameter: model_file_name.  For example, the following line tells the code that we want to use the model provided in the file ./3d_torus.jl.
+In particular, the parameter "model_file_name" should be set to 
+the name of the model file created in step 2. For example, the following line in ./cfg.yml tells the code that we want to use the model provided in the file ./3d_torus.jl.
       
 ```
       model_file_name : 3d_torus.jl
