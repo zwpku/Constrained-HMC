@@ -11,6 +11,9 @@ k = 1
 c = 3
 c2 = c * c
 
+# how many different quantities of interest (QoI) will be recorded
+num_qoi = 1
+
 # initial state
 x0 = [3.0, 0.0]
 
@@ -24,6 +27,15 @@ end
 function grad_V(x)
   return [4.0 * x[1], 0.0]
 #  return [0.0, 0.0]
+end
+
+# quantity of interest
+function QoI(x)
+  phi = atan(x[2], x[1]/c) 
+  if phi < 0
+    phi += 2 * pi
+  end
+  return [phi]
 end
 
 # the ith component \xi_i of the map \xi

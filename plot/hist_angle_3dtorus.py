@@ -9,7 +9,7 @@ def U(theta):
   return 0.0
 #  return 2.0 * x0**2
 
-working_dir_name = '../working_dir/'
+working_dir_name = '../working_dir_task1/'
 job_id = 1
 dim = 3
 output_every_k = 1

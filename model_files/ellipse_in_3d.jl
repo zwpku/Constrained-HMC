@@ -12,6 +12,9 @@ k = 2
 c = 3
 c2 = c * c
 
+# how many different quantities of interest (QoI) will be recorded
+num_qoi = 1
+
 # initial state
 x0 = [3.0, 0.0, 0.0]
 
@@ -24,6 +27,15 @@ end
 function grad_V(x)
   return [4.0 * x[1], 0.0, 0.0]
 #  return [0.0, 0.0]
+end
+
+# quantity of interest
+function QoI(x)
+  phi = atan(x[2], x[1]/c) 
+  if phi < 0
+    phi += 2 * pi
+  end
+  return [phi]
 end
 
 # the ith component \xi_i of the map \xi
@@ -45,7 +57,7 @@ function grad_xi_i(x, idx)
   end
 end
 
-if use_homotopy_solver_frequency > 0
+if solve_multiple_solutions_frequency > 0 
   @polyvar lam[1:k] p[1:((1+k)*d)]  
 
   # equations of the Lagrange multipliers, p contains parameters, lam is the unknown multipliers
