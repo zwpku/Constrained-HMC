@@ -31,27 +31,36 @@ For example, the HomotopyContinuation package can be installed as follows.
 
 ## Usage
 
-#### 1. Enter the directory containing source files. 
+#### 1. Enter the directory containing source files and create a working directory to run the code.
 
 ```
   	cd ./Constrained-HMC
+	cp -r working_dir_template working_dir_task1
+```
+In the example above, we create the directory ./working_dir_task1 by duplicating the template directory ./working_dir_template
+
+#### 2. Create a model file in the working directory. 
+
+It is necessary to specify the model (e.g., parameters, potentials, and the mapping whose zero levelset defines the submanifold) in order to run the code. Several model files are provided under [./model_files](./model_files) directory. They can be used as templates. For example, to sample the 3D torus, we can use
+```
+    cp ../model_files/3d_torus.jl
 ```
 
-#### 2. Create a model file. 
+#### 3. Create the configure file cfg.yml in the working directory. 
+The file [cfg.yml](./cfg.yml) should be presented under the working directory. A template configure file is provided under [./working_dir_template](./working_dir_template).
+(This step can be skipped if the working directory is duplicated from the [./working_dir_template](./working_dir_template).)
 
-It is necessary to specify the model (e.g., parameters, potentials, and the mapping whose zero levelset defines the submanifold) in order to run the code. This can be done by creating a file under [./model_files](./model_files) directory, where several model files are provided and can be used as templates.
+#### 4. Set and check the configure parameters in [cfg.yml](./cfg.yml).
 
-#### 3. Set and check the configure parameters in [cfg.yml](./cfg.yml).
-
-In particular, the model file created in step 2 should be provided to the parameter: model_file_name.  For example, the following line tells the code that we want to use the model provided in [./model_files/3d_torus.jl](./model_files/3d_torus.jl). 
+In particular, the model file created in step 2 should be provided to the parameter: model_file_name.  For example, the following line tells the code that we want to use the model provided in the file ./3d_torus.jl.
       
 ```
       model_file_name : 3d_torus.jl
 ```
 
-#### 4. Run.
+#### 5. Run the source code.
 
 ```
-    julia constrained_hmc.jl
+    julia ../src/constrained_hmc.jl
 ```
 
