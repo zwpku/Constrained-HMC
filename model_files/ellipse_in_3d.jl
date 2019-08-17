@@ -30,6 +30,8 @@ function grad_V(x)
 end
 
 # quantity of interest
+# make sure that the length of return vector equals the number num_qoi defined above
+
 function QoI(x)
   phi = atan(x[2], x[1]/c) 
   if phi < 0
