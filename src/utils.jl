@@ -17,7 +17,8 @@ function energy(x,v)
   return V(x) + dot(v,v) * 0.5
 end
 
-# solve algebraic equations for given parameters p, with path tracking
+# Solve algebraic equations for given parameters p, with path tracking.
+# Note that random number generators are probably NOT used in this function!
 function find_solutions_by_tracking(p)
     # Create an empty array.
     S_p = similar(S_p0, 0)
@@ -67,6 +68,7 @@ function find_solutions_total_degreee(p_current)
   F_p = subs(F, p => p_current)
   # Compute all solutions for F_p  
   # according to the package's usage, Total Degree Homotopy is used.
+  # note that random number generators are probably used inside this function.
   result_p = solve(F_p)
   # record the solutions
   S_p = solutions(result_p; only_real=true, real_tol=1e-8)

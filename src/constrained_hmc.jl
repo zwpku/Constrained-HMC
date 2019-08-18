@@ -5,6 +5,7 @@ using IterativeSolvers
 using PyPlot
 using DelimitedFiles
 using Printf
+using Random
 
 include("read_params.jl")
 
@@ -157,6 +158,7 @@ if solve_multiple_solutions_frequency > 0
   for i in 1:max_no_sol
     pj_acc_vec[i] = cumsum(pj_vec[i])
   end
+
   if solve_multiple_solutions_by_homotopy == 1 && path_tracking_in_homotopy_flag > 0 
     # prepare the start system
     global num_sol_start_system = 0
@@ -192,8 +194,11 @@ flush(stdout)
 # the main loop 
 for i in 1:N
   global x0, v0, forward_success_counter, backward_success_counter, stat_success_counter, stat_num_of_solution_forward, stat_num_of_solution_backward, stat_average_distance
-  if i % (div(N, 10)) == 0
-    @printf(" Step %d, %.1f%% finished.\n", i, i * 100 / N)
+
+  # output some information 
+  if N > 100 && i % (div(N, 10)) == 0
+    @printf(" Step %d, %.1f%% finished.", i, i * 100 / N)
+    @printf("\n\tForward_success_counter = %d (%.1f%%)\n\tBackward_success_counter = %d (%.1f%%)\n", forward_success_counter, forward_success_counter * 100 / i, backward_success_counter, backward_success_counter * 100 / forward_success_counter)
     flush(stdout)
   end 
   # first of all, randomly update the velocity 
