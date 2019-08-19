@@ -14,6 +14,7 @@ N = cfg_data["N"]
 
 # output data frequency
 output_sample_data_frequency = cfg_data["output_sample_data_frequency"]
+output_qoi_data_frequency = cfg_data["output_qoi_data_frequency"]
 
 # the stepsize \tau used in the proposal scheme
 step_size = cfg_data["step_size"] 

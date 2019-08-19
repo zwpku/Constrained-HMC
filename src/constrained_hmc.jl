@@ -136,7 +136,6 @@ end
 
 # array to store the samples 
 sample_data_vec = []
-qoi_data_vec = []
 forward_success_counter = 0
 backward_success_counter = 0
 newton_counter = 0 
@@ -184,12 +183,20 @@ end
 
 if num_qoi <= 0
   @printf("\nWarning: no quantity of interest will be computed (num_qoi = %d)!\n", num_qoi)
+else 
+  qoi_data_vec = []
+  # record the bin width 
+  for i in 1:num_qoi
+    push!(qoi_hist_info[i], (qoi_hist_info[i][3] - qoi_hist_info[i][2]) / qoi_hist_info[i][1])
+  end
+  qoi_counter = [zeros(trunc(Int32, qoi_hist_info[i][1])) for i in 1:num_qoi]
 end
 
 @printf("\nSampling started... \n")
 flush(stdout)
 
 # count the runtime 
+start_time = time()
 @time begin
 # the main loop 
 for i in 1:N
@@ -197,20 +204,36 @@ for i in 1:N
 
   # output some information 
   if N > 100 && i % (div(N, 10)) == 0
+    current_time = time()
     @printf(" Step %d, %.1f%% finished.", i, i * 100 / N)
+    @printf("\n\tElapsed time = %.2fSec., (Estimated) Total time = %.2fSec., Remaining time = %.2fSec.", (current_time - start_time), (current_time - start_time) / i * N, (current_time - start_time) / i * (N-i))
     @printf("\n\tForward_success_counter = %d (%.1f%%)\n\tBackward_success_counter = %d (%.1f%%)\n", forward_success_counter, forward_success_counter * 100 / i, backward_success_counter, backward_success_counter * 100 / forward_success_counter)
     flush(stdout)
   end 
   # first of all, randomly update the velocity 
   v0 = rand_draw_velocity(x0)
 
-  if i % output_sample_data_frequency == 0 # record the current state for output
+  if output_sample_data_frequency > 0 && i % output_sample_data_frequency == 0 # record the current state for output
     push!(sample_data_vec, vcat(x0, v0))
   end
 
   if num_qoi > 0
     qoi_val = QoI(x0)
-    push!(qoi_data_vec, qoi_val)
+
+    if output_qoi_data_frequency > 0 && i % output_qoi_data_frequency == 0 # record the current QoI
+      push!(qoi_data_vec, qoi_val)
+    end
+
+    for j in 1:num_qoi
+      idx = trunc(Int32, (qoi_val[j] - qoi_hist_info[j][2]) / qoi_hist_info[j][4] ) + 1
+      if idx < 1 
+        idx = 1
+      end 
+      if idx > qoi_hist_info[j][1] 
+        idx = qoi_hist_info[j][1]
+      end 
+      qoi_counter[j][idx] += 1
+    end
   end
 
   if solve_multiple_solutions_frequency > 0 && i % solve_multiple_solutions_frequency == 0
@@ -268,8 +291,7 @@ end
 
 @printf("\nForward_success_counter = %d (%.1f%%)\nBackward_success_counter = %d (%.1f%%)\n", forward_success_counter, forward_success_counter * 100 / N, backward_success_counter, backward_success_counter * 100 / forward_success_counter)
 
-@printf("Average MH rate = %.3f\nTotal successful jump rate = %.3f\nAverage jump distance (including no jump)= %.3f (%.3f)\n", stat_success_counter * 1.0 / backward_success_counter, stat_success_counter / N,
-	stat_average_distance * 1.0 / stat_success_counter, stat_average_distance * 1.0 / N)
+@printf("Average MH rate = %.3f\nTotal successful jump rate = %.3f\nAverage jump distance (including no jump)= %.3f (%.3f)\n", stat_success_counter * 1.0 / backward_success_counter, stat_success_counter / N, stat_average_distance * 1.0 / stat_success_counter, stat_average_distance * 1.0 / N)
 
 @printf("\nNo. of steps using Newton's method: %d\n", newton_counter)
 
@@ -293,12 +315,20 @@ for i in 1:(max_no_sol+1)
   end
 end
 
-# write the recorded states to file
-output_file = @sprintf("./traj_data_%d.txt", job_id)
-writedlm(output_file, sample_data_vec)
+if output_sample_data_frequency > 0
+  # write the recorded states to file
+  writedlm(@sprintf("./traj_data_%d.txt", job_id), sample_data_vec)
+end
 
 if num_qoi > 0
   # write the quantity of interest (QoI) to file
-  output_file = @sprintf("./qoi_data_%d.txt", job_id)
-  writedlm(output_file, qoi_data_vec)
+  if output_qoi_data_frequency > 0
+    writedlm(@sprintf("./qoi_data_%d.txt", job_id), qoi_data_vec)
+  end
+  # write the hist of quantity of interest (QoI) to file
+  output_file = open(@sprintf("./qoi_counter_%d.txt", job_id), "w")
+  writedlm(output_file, [N num_qoi])
+  writedlm(output_file, qoi_hist_info)
+  writedlm(output_file, qoi_counter)
+  close(output_file)
 end

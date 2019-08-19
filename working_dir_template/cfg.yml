@@ -2,7 +2,7 @@
 # this file contains values of parameters that are used in the code.
 # ************************************
 #
-job_id : 1
+job_id : 4
 
 model_file_name : 3d_torus.jl
 #model_file_name : ellipse.jl
@@ -13,7 +13,7 @@ model_file_name : 3d_torus.jl
 degree_polynomial_constraint : 4
 
 # the stepsize \tau used in the proposal scheme
-step_size : 0.5
+step_size : 0.3
 
 # check the forward scheme and print information, if the flag equals 1.
 check_rattle_flag : 1
@@ -31,9 +31,9 @@ newton_max_steps : 10
 
 # how often to solve multiple solutions of the constraint equation.
 # Newton's method will be used, if it equals 0
-solve_multiple_solutions_frequency : 0
+solve_multiple_solutions_frequency : 1
 # whether HomotopyContinuation package will be used.
-solve_multiple_solutions_by_homotopy : 0
+solve_multiple_solutions_by_homotopy : 1
 # the code will be slower, without PathTracking
 path_tracking_in_homotopy_flag : 1
 # In HomotopyContinuation, a solution will be consider to be new solution, if the difference is larger
@@ -44,10 +44,13 @@ homotopy_new_sol_tol : 1e-6
 polyroot_solver_eps : 1e-12
 
 # total number of samples 
-N : 500000
+N : 30000000
 
 # how often the sample data will be stored.
-output_sample_data_frequency : 3
+output_sample_data_frequency : 10
+
+# how often the histgram of QoI will be stored.
+output_qoi_data_frequency : 10
 
 # upper bound of solution number, here we assume there are at most 4 solutions
 # it should be no less than the degree of the polynomial. 

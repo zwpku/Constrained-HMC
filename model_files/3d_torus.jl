@@ -13,6 +13,8 @@ r = 0.5
 
 # how many different quantities of interest (QoI) will be recorded
 num_qoi = 1
+# for each quantity of interest, it contains number of bins, lower and upper ranges of the histgram.
+qoi_hist_info = [[100, 0.0, 2*pi]] 
 
 # initial state
 x0 = [R-r, 0.0, 0.0]
@@ -30,7 +32,6 @@ function grad_V(x)
 end
 
 # quantity of interest
-# make sure that the length of return vector equals the number num_qoi defined above
 function QoI(x)
   phi = atan(x[3], sqrt(x[1]^2 + x[2]^2) - R) 
   if phi < 0

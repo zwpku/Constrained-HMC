@@ -9,29 +9,30 @@ def U(theta):
   return 0.0
 #  return 2.0 * x0**2
 
-working_dir_name = '../working_dir_task1/'
-job_id = 1
+working_dir_name = '../working_dir_task4/'
+job_id = 4
 dim = 3
 output_every_k = 1
 R = 1.0
 r = 0.5
 lc = ['b', 'r', 'k', 'c', 'm', 'y']
 
-data_file_name = '%s/qoi_data_%d.txt' % (working_dir_name, job_id)
+data_file_name = '%s/qoi_counter_%d.txt' % (working_dir_name, job_id)
+infile = open(data_file_name, 'r')
 
 fig, ax = plt.subplots(1, 1, figsize=(8, 5))
-angle_vec_from_data = np.loadtxt(data_file_name)
-N = len(angle_vec_from_data)
-print ("%d data are loaded from: %s" % (N, data_file_name))
 
-xx = range(0, N, output_every_k)
-plt.plot(xx, angle_vec_from_data[::output_every_k], color=lc[0], linestyle='-', label=r'$\theta$')
-fig.tight_layout()
-plt.legend( bbox_to_anchor=(0.5, 0, 0.5, 0.5) )
-out_fig_name = '%s/traj_angle_3dtorus_%d.eps' % (working_dir_name, job_id)
-fig.savefig(out_fig_name)
+N, num_qoi = [int(x) for x in infile.readline().split()]
 
-plt.clf()
+qoi_hist_info = [[float(x) for x in infile.readline().split()] for idx in range(num_qoi)]
+qoi_counter = [[int(float(x)) for x in infile.readline().split()] for idx in range(num_qoi)]
+
+print ("%d QoI are loaded from: %s" % (num_qoi, data_file_name))
+
+xx = np.linspace( qoi_hist_info[0][1], qoi_hist_info[0][2], int(qoi_hist_info[0][0]) )
+density = [x  / (N * qoi_hist_info[0][3]) for x in qoi_counter[0]]
+
+plt.plot(xx, density, color=lc[0], linestyle='-', label=r'$\theta$')
 
 num_x = 500
 dtheta = 2 * math.pi / num_x 
@@ -43,10 +44,6 @@ for i in range(num_x):
   norm_z += true_density[i] * dtheta
 true_density = [true_density[i] / norm_z for i in range(num_x)]
 
-histdata, histedge = np.histogram(angle_vec_from_data, bins=100, density=True)
-histcenter = (histedge[:-1] + histedge[1:]) * 0.5
-
-plt.plot(histcenter, histdata, color=lc[0], linestyle='-', label='hist')
 plt.plot(theta_vec, true_density, color=lc[1], linestyle='-', label='true density')
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
