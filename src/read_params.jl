@@ -60,8 +60,6 @@ if solve_multiple_solutions_frequency > 0
   # if homotopy method will be used
   if solve_multiple_solutions_by_homotopy == 1
     homotopy_new_sol_tol = cfg_data["homotopy_new_sol_tol"] 
-  # the code will be slower, without PathTracking
-    path_tracking_in_homotopy_flag = cfg_data["path_tracking_in_homotopy_flag"]
   else # solve scalar constraint equation by PolynomialRoots package.
     polyroot_solver_eps = cfg_data["polyroot_solver_eps"]
   end

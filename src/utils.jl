@@ -77,22 +77,18 @@ end
 
 function find_multiple_solutions(p_current, flag)
   if solve_multiple_solutions_by_homotopy == 1 
-    if path_tracking_in_homotopy_flag == 0
+    if flag == -1 # prepare the start system 
       S_p = find_solutions_total_degreee(p_current)
-    else 
-      if flag == -1 # prepare the start system 
-	S_p = find_solutions_total_degreee(p_current)
-	# update the start system, if we find a new one which has more solutions
-	if length(S_p) > num_sol_start_system 
-	  # record the solutions
-	  global S_p0 = S_p
-	  #Construct the PathTracker
-	  global tracker = pathtracker(F; parameters=p, generic_parameters=p_current)
-	  global num_sol_start_system = length(S_p0)
-	end
-      else 
-	S_p = find_solutions_by_tracking(p_current)
+      # update the start system, if we find a new one which has more solutions
+      if length(S_p) > num_sol_start_system 
+	# record the solutions
+	global S_p0 = S_p
+	#Construct the PathTracker
+	global tracker = pathtracker(F; parameters=p, generic_parameters=p_current)
+	global num_sol_start_system = length(S_p0)
       end
+    else 
+      S_p = find_solutions_by_tracking(p_current)
     end
     # check: is the use of length function correct, when k>1?
     n = length(S_p)
