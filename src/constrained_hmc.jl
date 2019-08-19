@@ -5,7 +5,6 @@ using IterativeSolvers
 using PyPlot
 using DelimitedFiles
 using Printf
-using Random
 
 include("read_params.jl")
 
@@ -161,6 +160,7 @@ if solve_multiple_solutions_frequency > 0
   if solve_multiple_solutions_by_homotopy == 1 && path_tracking_in_homotopy_flag > 0 
     # prepare the start system
     global num_sol_start_system = 0
+
     # find a system as many solutions as possible
     for i in 1:10
       v0 = rand_draw_velocity(x0)
@@ -174,6 +174,7 @@ if solve_multiple_solutions_frequency > 0
     if num_sol_start_system > 0
       @printf("Starting systems: no. of real solutions = %d\n", length(S_p0))
       println("Starting systems: x0=", x0)
+      println("S_p0=", S_p0)
     else 
       println("Error: couldn't find a start system with nonzero solutions!")
       exit(1)
