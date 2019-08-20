@@ -33,7 +33,7 @@ newton_max_steps : 10
 # Newton's method will be used, if it equals 0
 solve_multiple_solutions_frequency : 1
 # whether HomotopyContinuation package will be used.
-solve_multiple_solutions_by_homotopy : 1
+solve_multiple_solutions_by_homotopy : 0
 # In HomotopyContinuation, a solution will be consider to be new solution, if the difference is larger
 # than this tolerance.
 homotopy_new_sol_tol : 1e-6
@@ -42,10 +42,13 @@ homotopy_new_sol_tol : 1e-6
 polyroot_solver_eps : 1e-12
 
 # total number of samples 
-N : 30000000
+N : 300000
 
-# how often the sample data will be stored.
+# how often the sample data will be stored for output.
 output_sample_data_frequency : 10
+
+# how often the QoI data will be stored for output.
+output_qoi_data_frequency : 10
 
 # upper bound of solution number, here we assume there are at most 4 solutions
 # it should be no less than the degree of the polynomial. 
