@@ -11,19 +11,37 @@ include("read_params.jl")
 include("utils.jl")
 
 # compute several possible proposal states, at the current state (x,v)
-function forward_rattle(x, v, use_newton_flag)
+function forward_rattle(x, v, is_multiple_solution_step)
   grad_pot_vec = grad_V(x)
   # this should be a (k x d) matrix
   grad_xi_vec = grad_xi(x)
   coeff = - step_size * step_size * 0.5
   x_tmp = x + step_size * v + coeff * grad_pot_vec 
   # find Lagrange multipliers for x
-  if use_newton_flag == 1 # by Newton's method
+  if is_multiple_solution_step == 0 # find one solution by Newton's method
     lam_x = find_solution_by_newton(x_tmp, grad_xi_vec)
   else  # find multiple solutions 
     # be careful how the parameters are ordered in p
     p = vcat(x_tmp, step_size * reshape(transpose(grad_xi_vec), length(grad_xi_vec), 1)[:,1])
-    lam_x = find_multiple_solutions(p, use_newton_flag)
+    lam_x = find_multiple_solutions(p, is_multiple_solution_step)
+    if is_multiple_solution_step == 1 && solve_multiple_solutions_by_homotopy == 1 && use_newton_with_homotopy_flag == 1
+      lam_x_tmp = find_solution_by_newton(x_tmp, grad_xi_vec)
+      if size(lam_x_tmp, 2) == 1 # one solution is found by Newton 
+	n = size(lam_x, 2)
+        # check if the solution found by Newton is new 
+	new_sol_flag = 1
+	for i in 1:n
+	  if norm(lam_x[:,i] - lam_x_tmp[:,1]) < homotopy_new_sol_tol 
+	    new_sol_flag = 0
+	    break
+	  end 
+        end
+        if new_sol_flag == 1 # include the Newton's solution 
+          lam_x = [lam_x lam_x_tmp[:,1]]
+          global new_newton_solution_in_homotopy_forward_counter += 1
+        end
+      end
+    end
   end
   n = size(lam_x, 2)
   # if we find at least one solutions
@@ -75,18 +93,37 @@ function forward_rattle(x, v, use_newton_flag)
 end
 
 #backward check, similar to the forward_rattle function.
-function backward_check(x1, v1, x, v, use_newton_flag)
+function backward_check(x1, v1, x, v, is_multiple_solution_step)
   grad_pot_vec = grad_V(x1)
   # this should be a (k x d) matrix
   grad_xi_vec = grad_xi(x1)
   coeff = - step_size * step_size * 0.5
   x_tmp = x1 + step_size * v1 + coeff * grad_pot_vec 
-  if use_newton_flag == 1 # by Newton's method
+  if is_multiple_solution_step == 0 # find one solution by Newton's method
     lam_x = find_solution_by_newton(x_tmp, grad_xi_vec)
   else  # find multiple solutions
     # be careful how the parameters are ordered in p
     p = vcat(x_tmp, step_size * reshape(transpose(grad_xi_vec), length(grad_xi_vec), 1)[:,1]) 
-    lam_x = find_multiple_solutions(p, use_newton_flag)
+    lam_x = find_multiple_solutions(p, is_multiple_solution_step)
+
+    if is_multiple_solution_step == 1 && solve_multiple_solutions_by_homotopy == 1 && use_newton_with_homotopy_flag == 1
+      lam_x_tmp = find_solution_by_newton(x_tmp, grad_xi_vec)
+      if size(lam_x_tmp, 2) == 1 # one solution is found by Newton 
+	n = size(lam_x, 2)
+        # check if the solution found by Newton is new 
+	new_sol_flag = 1
+	for i in 1:n
+	  if norm(lam_x[:,i] - lam_x_tmp[:,1]) < homotopy_new_sol_tol 
+	    new_sol_flag = 0
+	    break
+	  end
+        end
+        if new_sol_flag == 1 # include the Newton's solution 
+          lam_x = [lam_x lam_x_tmp[:,1]]
+          global new_newton_solution_in_homotopy_backward_counter += 1
+        end
+      end
+    end
   end
   n_back = size(lam_x, 2)
   backward_found_flag = 0
@@ -137,7 +174,7 @@ end
 sample_data_vec = []
 forward_success_counter = 0
 backward_success_counter = 0
-newton_counter = 0 
+single_solution_step_counter = 0
 stat_success_counter = 0
 stat_average_distance = 0
 
@@ -158,14 +195,18 @@ if solve_multiple_solutions_frequency > 0
   end
 
   if solve_multiple_solutions_by_homotopy == 1  
+    if use_newton_with_homotopy_flag == 1
+      global new_newton_solution_in_homotopy_forward_counter = 0
+      global new_newton_solution_in_homotopy_backward_counter = 0
+    end
     # prepare the start system
     global num_sol_start_system = 0
     # find a system as many solutions as possible
     for i in 1:10
       v0 = rand_draw_velocity(x0)
       # -1 indicates that we are solving the start system
-      use_newton_flag = -1
-      n, pj, x1, v1 = forward_rattle(x0, v0, use_newton_flag)
+      is_multiple_solution_step = -1
+      n, pj, x1, v1 = forward_rattle(x0, v0, is_multiple_solution_step)
       if n > 0
 	global x0 = x1
       end
@@ -212,7 +253,8 @@ for i in 1:N
   # first of all, randomly update the velocity 
   v0 = rand_draw_velocity(x0)
 
-  if output_sample_data_frequency > 0 && i % output_sample_data_frequency == 0 # record the current state for output
+  if output_sample_data_frequency > 0 && i % output_sample_data_frequency == 0 
+    # record the current state for output
     push!(sample_data_vec, vcat(x0, v0))
   end
 
@@ -223,6 +265,7 @@ for i in 1:N
       push!(qoi_data_vec, qoi_val)
     end
 
+    # add the current statistics into bins
     for j in 1:num_qoi
       idx = trunc(Int32, (qoi_val[j] - qoi_hist_info[j][2]) / qoi_hist_info[j][4] ) + 1
       if idx < 1 
@@ -236,13 +279,13 @@ for i in 1:N
   end
 
   if solve_multiple_solutions_frequency > 0 && i % solve_multiple_solutions_frequency == 0
-    use_newton_flag = 0
+    is_multiple_solution_step = 1
   else 
-    use_newton_flag = 1
-    global newton_counter += 1
+    is_multiple_solution_step = 0
+    global single_solution_step_counter += 1
   end
   # compute proposal states
-  n, pj, x1, v1 = forward_rattle(x0, v0, use_newton_flag)
+  n, pj, x1, v1 = forward_rattle(x0, v0, is_multiple_solution_step)
   if n <= max_no_sol 
     stat_num_of_solution_forward[n+1] += 1
   else 
@@ -254,7 +297,7 @@ for i in 1:N
   # otherwise, if one solution has been found, do backward check
   forward_success_counter += 1 
   # reverse the velocity, and do backward check
-  found_flag, n_back, pj_back = backward_check(x1, -v1, x0, -v0, use_newton_flag)
+  found_flag, n_back, pj_back = backward_check(x1, -v1, x0, -v0, is_multiple_solution_step)
   if n_back <= max_no_sol 
     stat_num_of_solution_backward[n_back+1] += 1
   else 
@@ -292,12 +335,15 @@ end
 
 @printf("Average MH rate = %.3f\nTotal successful jump rate = %.3f\nAverage jump distance (including no jump)= %.3f (%.3f)\n", stat_success_counter * 1.0 / backward_success_counter, stat_success_counter / N, stat_average_distance * 1.0 / stat_success_counter, stat_average_distance * 1.0 / N)
 
-@printf("\nNo. of steps using Newton's method: %d\n", newton_counter)
+@printf("\nNo. of steps finding single solution (via Newton's method): %d\n", single_solution_step_counter)
 
 if solve_multiple_solutions_by_homotopy == 1
-  @printf("No. of steps using HomotopyContinuation package: %d\n", N - newton_counter)
+  @printf("No. of steps finding multiple solution (via HomotopyContinuation package): %d\n", N - single_solution_step_counter)
+  if use_newton_with_homotopy_flag == 1
+   @printf("\tIn %d (%d) of %d steps, Newton's solution is added in farward (backward) rattle.\n", new_newton_solution_in_homotopy_forward_counter, new_newton_solution_in_homotopy_backward_counter, N - single_solution_step_counter)
+  end
 else 
-  @printf("No. of steps using PolynomialRoots package: %d\n", N - newton_counter)
+  @printf("No. of steps finding multiple solution (via PolynomialRoots package): %d\n", N - single_solution_step_counter)
 end
 
 println("\nNo. of solutions in forward rattle:")

@@ -38,6 +38,9 @@ solve_multiple_solutions_frequency = cfg_data["solve_multiple_solutions_frequenc
 # whether use HomotopyContinuation package or not 
 solve_multiple_solutions_by_homotopy = cfg_data["solve_multiple_solutions_by_homotopy"]
 
+# When HomotopyContinuation is used, whether also use Newton's method
+use_newton_with_homotopy_flag = cfg_data["use_newton_with_homotopy_flag"]
+
 # always use Newton's method, if the constraint equation is not polynomial
 if degree_polynomial_constraint == 0 && solve_multiple_solutions_frequency > 0
   println("Warning: Newton's method will be always used, because the constraint is not polynomial")
@@ -73,13 +76,10 @@ if max_no_sol < degree_polynomial_constraint
   max_no_sol = degree_polynomial_constraint 
 end
 
-# when Newton's solver will be used
-if solve_multiple_solutions_frequency != 1
-  # read parameters for Newton's solver
-  newton_matrix_solver_tol = cfg_data["newton_matrix_solver_tol"]
-  newton_res_tol = cfg_data["newton_res_tol"]
-  newton_max_steps = cfg_data["newton_max_steps"]
-end
+# read parameters for Newton's solver
+newton_matrix_solver_tol = cfg_data["newton_matrix_solver_tol"]
+newton_res_tol = cfg_data["newton_res_tol"]
+newton_max_steps = cfg_data["newton_max_steps"]
 
 # if this flag is one, indices are chosen according to the 
 # pre-defined probability distributions, based on their distances.
