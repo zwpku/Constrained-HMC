@@ -23,9 +23,9 @@ function find_solutions_by_tracking(p)
     # Create an empty array.
     S_p = similar(S_p0, 0)
     for s in S_p0
-        result = track(tracker, s; target_parameters=p)
+       result = track(tracker, s; target_parameters=p, accuracy=1e-10)
         # check that the tracking was successfull
-       if is_success(result) && is_real(result)
+       if is_success(result) && is_real(result; tol=1e-8)
          sol=solution(result)
 	 # check if the solution is new 
 	 new_sol_flag = 1
@@ -37,6 +37,9 @@ function find_solutions_by_tracking(p)
 	 end
 	 if new_sol_flag == 1
 	   push!(S_p, sol)
+	   println("accuracy=", accuracy(result))
+	   println("sol=", sol)
+	   println("eval_f=", F[1](lam => [sol], p => p))
 	 end
        end
     end

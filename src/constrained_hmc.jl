@@ -74,8 +74,10 @@ function forward_rattle(x, v, is_multiple_solution_step)
     end
     # compute the new state x^1
     x_1 = x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,j]
+    println("|xi(x^1)|=", norm(xi(x_1))) 
     if check_rattle_flag == 1 && norm(xi(x_1)) > check_tol
-      println("x^1 is not on the level set, |xi(x^1)|=", norm(xi(x_1)))
+      println("x^1 is not on the level set, |xi(x^1)|=", norm(xi(x_1))) 
+      println("x1=", x_1, "\tlam_x=", lam_x[:,j])
       exit(1)
     end
     # prepare to compute the Lagrange multiplier lam_v
