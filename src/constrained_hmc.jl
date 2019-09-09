@@ -23,8 +23,8 @@ function forward_rattle(x, v, is_multiple_solution_step)
   else  # find multiple solutions 
     # be careful how the parameters are ordered in p
     p = vcat(x_tmp, step_size * reshape(transpose(grad_xi_vec), length(grad_xi_vec), 1)[:,1])
-    lam_x = find_multiple_solutions(p, is_multiple_solution_step)
-    if is_multiple_solution_step == 1 && solve_multiple_solutions_by_homotopy == 1 && use_newton_with_homotopy_flag == 1
+    lam_x = find_multiple_solutions(p)
+    if solve_multiple_solutions_by_homotopy == 1 && use_newton_with_homotopy_flag == 1
       lam_x_tmp = find_solution_by_newton(x_tmp, grad_xi_vec)
       if size(lam_x_tmp, 2) == 1 # one solution is found by Newton 
 	n = size(lam_x, 2)
@@ -104,9 +104,8 @@ function backward_check(x1, v1, x, v, is_multiple_solution_step)
   else  # find multiple solutions
     # be careful how the parameters are ordered in p
     p = vcat(x_tmp, step_size * reshape(transpose(grad_xi_vec), length(grad_xi_vec), 1)[:,1]) 
-    lam_x = find_multiple_solutions(p, is_multiple_solution_step)
-
-    if is_multiple_solution_step == 1 && solve_multiple_solutions_by_homotopy == 1 && use_newton_with_homotopy_flag == 1
+    lam_x = find_multiple_solutions(p)
+    if solve_multiple_solutions_by_homotopy == 1 && use_newton_with_homotopy_flag == 1
       lam_x_tmp = find_solution_by_newton(x_tmp, grad_xi_vec)
       if size(lam_x_tmp, 2) == 1 # one solution is found by Newton 
 	n = size(lam_x, 2)
@@ -199,21 +198,26 @@ if solve_multiple_solutions_frequency > 0
       global new_newton_solution_in_homotopy_forward_counter = 0
       global new_newton_solution_in_homotopy_backward_counter = 0
     end
+
     # prepare the start system
-    global num_sol_start_system = 0
-    # find a system as many solutions as possible
-    for i in 1:10
-      v0 = rand_draw_velocity(x0)
-      # -1 indicates that we are solving the start system
-      is_multiple_solution_step = -1
-      n, pj, x1, v1 = forward_rattle(x0, v0, is_multiple_solution_step)
-      if n > 0
-	global x0 = x1
-      end
-    end
+    p0 = rand(Complex{Float32}, (1+k)*d)
+#    p0 = rand((1+k)*d)
+    F_p = subs(F, p => p0)
+    # Compute all solutions for F_p .
+    # According to the package's usage, Total Degree Homotopy is used.
+    # Note that random number generators are used inside this function.
+    result_p = solve(F_p)
+    S_p0 = solutions(result_p)
+    #Construct the PathTracker
+    global tracker = pathtracker(F; parameters=p, generic_parameters=p0)
+    num_sol_start_system = length(S_p0)
+
     if num_sol_start_system > 0
-      @printf("Starting systems: no. of solutions = %d\n", length(S_p0))
-      println("Starting systems: x0=", x0)
+      @printf("Starting systems:\n")
+      for i in 1:num_sol_start_system
+        println(S_p0[i])
+      end
+      @printf("Total solution number=%d\nNo. of real solutions=%d\n", length(S_p0), nreal(result_p))
     else 
       println("Error: couldn't find a start system with nonzero solutions!")
       exit(1)

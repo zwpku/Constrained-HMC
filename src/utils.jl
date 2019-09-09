@@ -63,33 +63,9 @@ function find_solution_by_newton(xtmp, grad_xi_vec)
   end
 end
 
-# solve equations using HomotopyContinuation, but without path tracking
-function find_solutions_total_degreee(p_current)
-  F_p = subs(F, p => p_current)
-  # Compute all solutions for F_p  
-  # according to the package's usage, Total Degree Homotopy is used.
-  # note that random number generators are probably used inside this function.
-  result_p = solve(F_p)
-  # record the solutions
-  S_p = solutions(result_p; only_real=true, real_tol=1e-8)
-  return S_p
-end
-
-function find_multiple_solutions(p_current, flag)
+function find_multiple_solutions(p_current)
   if solve_multiple_solutions_by_homotopy == 1 
-    if flag == -1 # prepare the start system 
-      S_p = find_solutions_total_degreee(p_current)
-      # update the start system, if we find a new one which has more solutions
-      if length(S_p) > num_sol_start_system 
-	# record the solutions
-	global S_p0 = S_p
-	#Construct the PathTracker
-	global tracker = pathtracker(F; parameters=p, generic_parameters=p_current)
-	global num_sol_start_system = length(S_p0)
-      end
-    else 
-      S_p = find_solutions_by_tracking(p_current)
-    end
+    S_p = find_solutions_by_tracking(p_current)
     # check: is the use of length function correct, when k>1?
     n = length(S_p)
     lambda_vec = zeros(k,n)
