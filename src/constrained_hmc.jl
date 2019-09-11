@@ -14,7 +14,7 @@ include("utils.jl")
 function forward_rattle(x, v, is_multiple_solution_step)
   grad_pot_vec = grad_V(x)
   # this should be a (k x d) matrix
-  grad_xi_vec = grad_xi(x)
+  grad_xi_vec = grad_xi(x, 1)
   coeff = - step_size * step_size * 0.5
   x_tmp = x + step_size * v + coeff * grad_pot_vec 
   # find Lagrange multipliers for x
@@ -74,15 +74,14 @@ function forward_rattle(x, v, is_multiple_solution_step)
     end
     # compute the new state x^1
     x_1 = x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,j]
-    println("|xi(x^1)|=", norm(xi(x_1))) 
     if check_rattle_flag == 1 && norm(xi(x_1)) > check_tol
-      println("x^1 is not on the level set, |xi(x^1)|=", norm(xi(x_1))) 
-      println("x1=", x_1, "\tlam_x=", lam_x[:,j])
-      exit(1)
+      println("Warning: |xi(x^1)|=", norm(xi(x_1))) 
+      println("x1=", x_1, "\tlam_x=", lam_x[:,j], "\tnorm_of_grad=", norm(grad_xi_vec))
+#     exit(1)
     end
     # prepare to compute the Lagrange multiplier lam_v
     v_tmp = v - 0.5 * step_size * (grad_pot_vec + grad_V(x_1)) + transpose(grad_xi_vec) * lam_x[:,j] 
-    grad_xi_vec_1 = grad_xi(x_1)
+    grad_xi_vec_1 = grad_xi(x_1, 1)
     mat_v_tmp = grad_xi_vec_1 * transpose(grad_xi_vec_1)
     # directly compute the Lagrange multiplier lam_v, by solving a linear system
     # Note: matrix inversion may be numerically problematic, when k is large! Consider replacing it by iterative solver, such as lsmr.
@@ -98,7 +97,7 @@ end
 function backward_check(x1, v1, x, v, is_multiple_solution_step)
   grad_pot_vec = grad_V(x1)
   # this should be a (k x d) matrix
-  grad_xi_vec = grad_xi(x1)
+  grad_xi_vec = grad_xi(x1, 1)
   coeff = - step_size * step_size * 0.5
   x_tmp = x1 + step_size * v1 + coeff * grad_pot_vec 
   if is_multiple_solution_step == 0 # find one solution by Newton's method
@@ -163,7 +162,7 @@ function backward_check(x1, v1, x, v, is_multiple_solution_step)
 end
 
 function rand_draw_velocity(x)
-  grad_xi_vec = grad_xi(x)
+  grad_xi_vec = grad_xi(x, 1)
   # generate the orthnormal basis of the tangent space
   U_x = nullspace(grad_xi_vec)
   # generate normal Gaussian vector, as coefficients under the basis  
@@ -202,8 +201,15 @@ if solve_multiple_solutions_frequency > 0
     end
 
     # prepare the start system
-    p0 = rand(Complex{Float32}, (1+k)*d)
-#    p0 = rand((1+k)*d)
+#   p0 = randn(Complex{Float32}, (1+k)*d)
+    p0 = zeros(Complex{Float32}, k+1, d)
+    for idx in 1:k
+      p0[1+idx, :] = randn(d)
+      r = norm(p0[1+idx,:])
+      p0[1+idx,:] /= r
+    end
+    p0[1,:] = randn(Complex{Float32}, d)
+    p0 = reshape(p0, (1+k)*d, 1)[:,1]
     F_p = subs(F, p => p0)
     # Compute all solutions for F_p .
     # According to the package's usage, Total Degree Homotopy is used.
@@ -211,7 +217,7 @@ if solve_multiple_solutions_frequency > 0
     result_p = solve(F_p)
     S_p0 = solutions(result_p)
     #Construct the PathTracker
-    global tracker = pathtracker(F; parameters=p, generic_parameters=p0)
+    global tracker = pathtracker(F; parameters=p, generic_parameters=p0, accuracy_eg=1e-9)
     num_sol_start_system = length(S_p0)
 
     if num_sol_start_system > 0

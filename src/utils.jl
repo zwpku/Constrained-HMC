@@ -4,10 +4,15 @@ function xi(x)
 end
 
 # \nabla\xi: a k\times d matrix
-function grad_xi(x)
+function grad_xi(x, normalize_flag)
   tmp = zeros(k,d)
   for i in 1:k
     tmp[i,:] = grad_xi_i(x,i)
+    # normalize the gradient 
+    if normalize_flag == 1
+      r = norm(tmp[i,:])
+      tmp[i,:] /= r
+    end
   end
   return tmp
 end
@@ -19,11 +24,11 @@ end
 
 # Solve algebraic equations for given parameters p, with path tracking.
 # Note that random number generators are probably NOT used in this function!
-function find_solutions_by_tracking(p)
+function find_solutions_by_tracking(p_current)
     # Create an empty array.
     S_p = similar(S_p0, 0)
     for s in S_p0
-       result = track(tracker, s; target_parameters=p, accuracy=1e-10)
+       result = track(tracker, s; target_parameters=p_current, accuracy=1e-9)
         # check that the tracking was successfull
        if is_success(result) && is_real(result; tol=1e-8)
          sol=solution(result)
@@ -37,9 +42,6 @@ function find_solutions_by_tracking(p)
 	 end
 	 if new_sol_flag == 1
 	   push!(S_p, sol)
-	   println("accuracy=", accuracy(result))
-	   println("sol=", sol)
-	   println("eval_f=", F[1](lam => [sol], p => p))
 	 end
        end
     end
@@ -53,7 +55,7 @@ function find_solution_by_newton(xtmp, grad_xi_vec)
   b = xi(x_now)
   iter = 0
   while norm(b) > newton_res_tol && iter < newton_max_steps
-    mat = grad_xi(x_now) * transpose(grad_xi_vec)
+    mat = grad_xi(x_now, 0) * transpose(grad_xi_vec)
     lam += -1.0 * lsmr(mat, b, atol=newton_matrix_solver_tol, btol=newton_matrix_solver_tol) / step_size 
     x_now = xtmp + step_size * transpose(grad_xi_vec) * lam
     b = xi(x_now)
