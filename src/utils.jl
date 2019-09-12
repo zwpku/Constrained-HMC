@@ -30,54 +30,37 @@ function find_solutions_by_tracking(p_current)
     for s in S_p0
        result = track(tracker, s; target_parameters=p_current, accuracy=1e-9)
         # check that the tracking was successfull
-       if is_success(result) && is_real(result; tol=1e-8)
-         sol=solution(result)
-	 # check if the solution is new 
-	 new_sol_flag = 1
-	 for i in 1:length(S_p)
-	    if euclidean_distance(S_p[i], sol) < homotopy_new_sol_tol
-	      new_sol_flag = 0
-	      break
-	    end
-	 end
-	 if new_sol_flag == 1
-	   push!(S_p, sol)
-	 end
+       if is_success(result) 
+	 push!(S_p, solution(result))
        end
     end
     return S_p
 end
 
 # find one solution by Newton's method
-function find_solution_by_newton(xtmp, grad_xi_vec)
-  lam = zeros(k)
-  x_now = xtmp
+function find_solution_by_newton(xtmp, grad_xi_vec; res_tol=newton_res_tol, max_steps=newton_max_steps, lam0=zeros(k))
+  lam=lam0
+  x_now = xtmp + step_size * transpose(grad_xi_vec) * lam
   b = xi(x_now)
   iter = 0
-  while norm(b) > newton_res_tol && iter < newton_max_steps
+  while norm(b) > res_tol && iter < max_steps
     mat = grad_xi(x_now, 0) * transpose(grad_xi_vec)
     lam += -1.0 * lsmr(mat, b, atol=newton_matrix_solver_tol, btol=newton_matrix_solver_tol) / step_size 
     x_now = xtmp + step_size * transpose(grad_xi_vec) * lam
     b = xi(x_now)
     iter += 1
   end
-  if norm(b) < newton_res_tol
-    return reshape(lam, k, 1)
+  if norm(b) < res_tol
+    return iter, reshape(lam, k, 1)
   else # return empty set, no solution has been found
-    return Array{Float64}(undef, 0, 0)
+    return iter, Array{Float64}(undef, 0, 0)
   end
 end
 
-function find_multiple_solutions(p_current)
+function find_multiple_solutions(x_tmp, grad_xi_vec)
+  p_current = vcat(x_tmp, step_size * reshape(transpose(grad_xi_vec), length(grad_xi_vec), 1)[:,1])
   if solve_multiple_solutions_by_homotopy == 1 
-    S_p = find_solutions_by_tracking(p_current)
-    # check: is the use of length function correct, when k>1?
-    n = length(S_p)
-    lambda_vec = zeros(k,n)
-    # extract the real part
-    for i in 1:n
-      lambda_vec[:,i] = [S_p[i][j].re for j in 1:k]
-    end
+    roots_vec = find_solutions_by_tracking(p_current)
   else #instead of using HomotopyContinuation, we use PolynomialRoots package (for k=1)
     # compute the coefficients of polynomial 
     poly = subs(F, p => p_current)
@@ -85,14 +68,40 @@ function find_multiple_solutions(p_current)
     coeff_vec = reverse(poly[1].a)
     # solve the roots
     roots_vec = roots(coeff_vec, epsilon=polyroot_solver_eps)
-    sol_vec = []
-    for sol in roots_vec
-      if abs(sol.im) < 1e-8 
-        push!(sol_vec, sol.re)
+  end
+  n = length(roots_vec)
+  prev_sol_vec = []
+  for idx in 1:n
+    tmp = norm([roots_vec[idx][i].im for i in 1:k])
+    # only choose real solutions
+    if tmp > 1e-8 
+      continue
+    end
+    tmp_real = [roots_vec[idx][i].re for i in 1:k]
+    # refine the solution using Newton's method
+    if refine_by_newton_max_step > 0
+      num, tmp_real = find_solution_by_newton(x_tmp, grad_xi_vec, res_tol= check_tol, max_steps=refine_by_newton_max_step, lam0=tmp_real)
+      global stat_tot_refine_newton_steps += num 
+    end
+    if length(tmp_real) == k
+      # only if the current solution is a new one
+      new_flag = 1
+      for sol in prev_sol_vec
+	if norm(tmp_real - sol) < new_sol_tol
+	   new_flag = 0
+	   break
+	end
+      end
+      if new_flag == 1 
+	push!(prev_sol_vec, tmp_real)
       end
     end
-    lambda_vec = reshape(sol_vec, 1, length(sol_vec))
   end
-  return lambda_vec
+  n = length(prev_sol_vec)
+  sol_vec = zeros(k, n)
+  for ii in 1:n
+    sol_vec[:, ii] = prev_sol_vec[ii]
+  end
+  return sol_vec
 end
 

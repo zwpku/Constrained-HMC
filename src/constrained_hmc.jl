@@ -19,19 +19,18 @@ function forward_rattle(x, v, is_multiple_solution_step)
   x_tmp = x + step_size * v + coeff * grad_pot_vec 
   # find Lagrange multipliers for x
   if is_multiple_solution_step == 0 # find one solution by Newton's method
-    lam_x = find_solution_by_newton(x_tmp, grad_xi_vec)
+    num, lam_x = find_solution_by_newton(x_tmp, grad_xi_vec)
   else  # find multiple solutions 
     # be careful how the parameters are ordered in p
-    p = vcat(x_tmp, step_size * reshape(transpose(grad_xi_vec), length(grad_xi_vec), 1)[:,1])
-    lam_x = find_multiple_solutions(p)
+    lam_x = find_multiple_solutions(x_tmp, grad_xi_vec)
     if solve_multiple_solutions_by_homotopy == 1 && use_newton_with_homotopy_flag == 1
-      lam_x_tmp = find_solution_by_newton(x_tmp, grad_xi_vec)
+      num, lam_x_tmp = find_solution_by_newton(x_tmp, grad_xi_vec)
       if size(lam_x_tmp, 2) == 1 # one solution is found by Newton 
 	n = size(lam_x, 2)
         # check if the solution found by Newton is new 
 	new_sol_flag = 1
 	for i in 1:n
-	  if norm(lam_x[:,i] - lam_x_tmp[:,1]) < homotopy_new_sol_tol 
+	  if norm(lam_x[:,i] - lam_x_tmp[:,1]) < new_sol_tol 
 	    new_sol_flag = 0
 	    break
 	  end 
@@ -75,8 +74,8 @@ function forward_rattle(x, v, is_multiple_solution_step)
     # compute the new state x^1
     x_1 = x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,j]
     if check_rattle_flag == 1 && norm(xi(x_1)) > check_tol
-      println("Warning: |xi(x^1)|=", norm(xi(x_1))) 
-      println("x1=", x_1, "\tlam_x=", lam_x[:,j], "\tnorm_of_grad=", norm(grad_xi_vec))
+      println("Warning: |xi(x^1)|=", norm(xi(x_1)), "in forward_rattle") 
+      println("x1=", x_1, "\tlam_x=", lam_x[:,j])
 #     exit(1)
     end
     # prepare to compute the Lagrange multiplier lam_v
@@ -101,19 +100,18 @@ function backward_check(x1, v1, x, v, is_multiple_solution_step)
   coeff = - step_size * step_size * 0.5
   x_tmp = x1 + step_size * v1 + coeff * grad_pot_vec 
   if is_multiple_solution_step == 0 # find one solution by Newton's method
-    lam_x = find_solution_by_newton(x_tmp, grad_xi_vec)
+    num, lam_x = find_solution_by_newton(x_tmp, grad_xi_vec)
   else  # find multiple solutions
     # be careful how the parameters are ordered in p
-    p = vcat(x_tmp, step_size * reshape(transpose(grad_xi_vec), length(grad_xi_vec), 1)[:,1]) 
-    lam_x = find_multiple_solutions(p)
+    lam_x = find_multiple_solutions(x_tmp, grad_xi_vec)
     if solve_multiple_solutions_by_homotopy == 1 && use_newton_with_homotopy_flag == 1
-      lam_x_tmp = find_solution_by_newton(x_tmp, grad_xi_vec)
+      num, lam_x_tmp = find_solution_by_newton(x_tmp, grad_xi_vec)
       if size(lam_x_tmp, 2) == 1 # one solution is found by Newton 
 	n = size(lam_x, 2)
         # check if the solution found by Newton is new 
 	new_sol_flag = 1
 	for i in 1:n
-	  if norm(lam_x[:,i] - lam_x_tmp[:,1]) < homotopy_new_sol_tol 
+	  if norm(lam_x[:,i] - lam_x_tmp[:,1]) < new_sol_tol 
 	    new_sol_flag = 0
 	    break
 	  end
@@ -177,6 +175,7 @@ backward_success_counter = 0
 single_solution_step_counter = 0
 stat_success_counter = 0
 stat_average_distance = 0
+stat_average_xi = 0
 
 stat_num_of_solution_forward = zeros(max_no_sol+1)
 stat_num_of_solution_backward = zeros(max_no_sol+1)
@@ -192,6 +191,11 @@ if solve_multiple_solutions_frequency > 0
   pj_acc_vec = similar(pj_vec)
   for i in 1:max_no_sol
     pj_acc_vec[i] = cumsum(pj_vec[i])
+  end
+  
+  # record how many newton's steps are run to refined the solutions
+  if refine_by_newton_max_step > 0
+    stat_tot_refine_newton_steps = 0
   end
 
   if solve_multiple_solutions_by_homotopy == 1  
@@ -252,7 +256,10 @@ start_time = time()
 @time begin
 # the main loop 
 for i in 1:N
-  global x0, v0, forward_success_counter, backward_success_counter, stat_success_counter, stat_num_of_solution_forward, stat_num_of_solution_backward, stat_average_distance
+  global x0, v0, forward_success_counter, backward_success_counter, stat_success_counter, stat_num_of_solution_forward, stat_num_of_solution_backward, stat_average_distance, stat_average_xi
+
+  # statistics
+  stat_average_xi += norm(xi(x0))
 
   # output some information 
   if N > 100 && i % (div(N, 10)) == 0
@@ -358,6 +365,12 @@ else
   @printf("No. of steps finding multiple solution (via PolynomialRoots package): %d\n", N - single_solution_step_counter)
 end
 
+if solve_multiple_solutions_frequency > 0 && refine_by_newton_max_step > 0
+  @printf("Total No. of Newton's itereations to refine solutions: %d, on average: %.1f\n", stat_tot_refine_newton_steps, stat_tot_refine_newton_steps / (N- single_solution_step_counter))
+end
+
+@printf("Average |xi(x)| : %.3e\n", stat_average_xi / N)
+  
 println("\nNo. of solutions in forward rattle:")
 for i in 1:(max_no_sol+1)
   if stat_num_of_solution_forward[i] > 0

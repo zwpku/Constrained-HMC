@@ -55,15 +55,15 @@ end
 include(pwd() * "/" * model_file_name)
 
 if solve_multiple_solutions_frequency > 0
+  new_sol_tol = cfg_data["new_sol_tol"] 
+  refine_by_newton_max_step = cfg_data["refine_by_newton_max_step"]
   if k > 1 && solve_multiple_solutions_by_homotopy == 0
     @printf("Warning: constraint equations will be solved by HomotopyContinuation package because k=%d is large than 1.", k)
     println("\t reset solve_multiple_solutions_by_homotopy to 1")
     solve_multiple_solutions_by_homotopy = 1
   end
-  # if homotopy method will be used
-  if solve_multiple_solutions_by_homotopy == 1
-    homotopy_new_sol_tol = cfg_data["homotopy_new_sol_tol"] 
-  else # solve scalar constraint equation by PolynomialRoots package.
+  if solve_multiple_solutions_by_homotopy == 0
+    # solve scalar constraint equation by PolynomialRoots package.
     polyroot_solver_eps = cfg_data["polyroot_solver_eps"]
   end
 end
