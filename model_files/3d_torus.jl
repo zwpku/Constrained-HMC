@@ -7,6 +7,8 @@
 d = 3
 k = 1
 
+beta = 1.0
+
 # parameters of the ellipse 
 R = 1.0
 r = 0.5 
