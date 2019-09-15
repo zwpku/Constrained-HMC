@@ -7,30 +7,30 @@
 d = 3
 k = 1
 
-beta = 1.0
+beta = 30.0
 
 # parameters of the ellipse 
 R = 1.0
 r = 0.5 
 
 # how many different quantities of interest (QoI) will be recorded
-num_qoi = 1
+num_qoi = 2
 # for each quantity of interest, it contains number of bins, lower and upper ranges of the histgram.
-qoi_hist_info = [[100, 0.0, 2*pi]] 
+qoi_hist_info = [[100, 0.0, 2*pi], [100, 0.0, 2*pi]] 
 
 # initial state
 x0 = [R-r, 0.0, 0.0]
 
 # potential in the target distribution
 function V(x)
-#  return (x[1]^2 + x[2]^2 + x[3]^2) * 0.5 
-  return 0.0
+  return x[1]^2 / (x[1]^2+x[2]^2)
+# return 0.0
 end
 
 # gradient of potential V
 function grad_V(x)
 #  return [x[1], x[2], x[3]]
-  return [0.0, 0.0, 0.0]
+  return [2.0 * x[1]*x[2]^2 / (x[1]^2+x[2]^2)^2, -2.0 * x[1]^2*x[2] / (x[1]^2+x[2]^2)^2, 0.0]
 end
 
 # quantity of interest
@@ -39,7 +39,11 @@ function QoI(x)
   if phi < 0
     phi += 2 * pi
   end
-  return [phi]
+  theta = atan(x[2], x[1])
+  if theta < 0
+    theta += 2 * pi
+  end
+  return [phi, theta]
 end
 
 # the ith component \xi_i of the map \xi.
