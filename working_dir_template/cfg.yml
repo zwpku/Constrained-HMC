@@ -2,7 +2,7 @@
 # this file contains values of parameters that are used in the code.
 # ************************************
 #
-job_id : 4
+job_id : 5
 
 model_file_name : 3d_torus.jl
 #model_file_name : ellipse.jl
@@ -13,15 +13,15 @@ model_file_name : 3d_torus.jl
 degree_polynomial_constraint : 4
 
 # the stepsize \tau used in the proposal scheme
-step_size : 0.3
+step_size : 0.5
 
 # check the forward scheme and print information, if the flag equals 1.
 check_rattle_flag : 1
 # tolerance error
-check_tol : 1e-6
+check_tol : 1e-7
 # When Newton's method is used, the tolerence in backward check should be set properly, 
 # depending on the tolerance in Mewton's method
-backward_check_tol : 1e-7
+backward_check_tol : 1e-6
 
 # tolerance of the matrix problem in each Newton's step
 newton_matrix_solver_tol : 1e-8
@@ -31,20 +31,21 @@ newton_max_steps : 10
 
 # how often to solve multiple solutions of the constraint equation.
 # Newton's method will be used, if it equals 0
-solve_multiple_solutions_frequency : 1
+solve_multiple_solutions_frequency : 50
 # whether HomotopyContinuation package will be used.
-solve_multiple_solutions_by_homotopy : 0
+solve_multiple_solutions_by_homotopy : 1
 # When HomotopyContinuation is used, whether also use Newton's method
-use_newton_with_homotopy_flag : 1
-# In HomotopyContinuation, a solution will be consider to be new solution, if the difference is larger
+use_newton_with_homotopy_flag : 0
+# When solving multiple solutions, a solution will be consider to be new solution, if the difference is larger
 # than this tolerance.
-homotopy_new_sol_tol : 1e-6
+new_sol_tol : 1e-6
+refine_by_newton_max_step : 1
 
 # the tolerance used in PolynomialRoots 
 polyroot_solver_eps : 1e-12
 
 # total number of samples 
-N : 300000
+N : 10000000
 
 # how often the sample data will be stored for output.
 output_sample_data_frequency : 10

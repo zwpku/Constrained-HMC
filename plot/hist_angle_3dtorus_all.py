@@ -56,8 +56,7 @@ for idx in range(7):
                 markevery= 10, fillstyle='none', label= label_names[idx] )
 
 
-plt.xticks([0, math.pi/2, math.pi, math.pi * 3.0 /2, 2.0 * math.pi], ['0',
-r'$\pi/2$', r'$\pi$', r'$3\pi/2$', r'$2\pi$'], fontsize=22)
+plt.xticks([0, math.pi/2, math.pi, math.pi * 3.0 /2, 2.0 * math.pi], ['0', r'$\pi/2$', r'$\pi$', r'$3\pi/2$', r'$2\pi$'], fontsize=22)
 plt.yticks(fontsize=22)
 plt.gca().set_ylim(0.03, 0.34)
 plt.legend(bbox_to_anchor=(0.17, 0.5, 0.9, 0.52), fontsize=20, ncol=2)

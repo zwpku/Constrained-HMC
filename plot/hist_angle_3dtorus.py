@@ -36,7 +36,7 @@ for idx in range(num_qoi):
     density = [x  / (N * qoi_hist_info[0][3]) for x in qoi_counter[idx]]
 
     plt.plot(xx, density, color=lc[0], linestyle='-', label=label_name[idx])
-    plt.xticks(fontsize=18)
+    plt.xticks([0, math.pi/2, math.pi, math.pi * 3.0 /2, 2.0 * math.pi], ['0', r'$\pi/2$', r'$\pi$', r'$3\pi/2$', r'$2\pi$'], fontsize=22)
     plt.yticks(fontsize=18)
 #    plt.gca().set_ylim(0.0, 0.3)
     plt.legend(bbox_to_anchor=(0.3, 0.5, 0.5, 0.5), fontsize=18)

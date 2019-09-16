@@ -7,7 +7,7 @@
 d = 3
 k = 1
 
-beta = 30.0
+beta = 15.0
 
 # parameters of the ellipse 
 R = 1.0
@@ -19,18 +19,17 @@ num_qoi = 2
 qoi_hist_info = [[100, 0.0, 2*pi], [100, 0.0, 2*pi]] 
 
 # initial state
-x0 = [R-r, 0.0, 0.0]
+x0 = [(R+r)/sqrt(2), (R+r)/sqrt(2), 0]
 
 # potential in the target distribution
 function V(x)
-  return x[1]^2 / (x[1]^2+x[2]^2)
+  return (x[1] - x[2])^2 + 5.0 * ((x[1]^2 + x[2]^2)/(R+r)^2 - 1.0)^2 
 # return 0.0
 end
 
 # gradient of potential V
 function grad_V(x)
-#  return [x[1], x[2], x[3]]
-  return [2.0 * x[1]*x[2]^2 / (x[1]^2+x[2]^2)^2, -2.0 * x[1]^2*x[2] / (x[1]^2+x[2]^2)^2, 0.0]
+  return [2.0 * (x[1] - x[2]) + 20.0 * x[1] / (R+r)^2 * ((x[1]^2 + x[2]^2)/(R+r)^2 - 1.0), 2.0 * (x[2] - x[1]) + 20.0 * x[2] / (R+r)^2 * ((x[1]^2 + x[2]^2)/(R+r)^2 - 1.0), 0.0]
 end
 
 # quantity of interest
