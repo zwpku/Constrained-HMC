@@ -16,9 +16,6 @@ fig, ax = plt.subplots(1, 1, figsize=(8, 5))
 xv_data = np.loadtxt(data_file_name)
 print ("%d samples are loaded from: %s" % (len(xv_data[:,0]), data_file_name))
 
-idx = np.argmin(xv_data[:, 1])
-print (idx, xv_data[idx, 1])
-
 # plot the position
 for i in range(dim):
     plt.clf()
