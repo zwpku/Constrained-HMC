@@ -9,7 +9,7 @@ def V(phi, theta):
       return 0.0
   else :
       x = [(R+r*math.cos(phi))*math.cos(theta), (R+r*math.cos(phi))*math.sin(theta), r * math.sin(phi)]
-      return 0.5 * (x[0] - x[1])**2 + 5.0 * ((x[0]**2 + x[1]**2)/(R+r)**2 - 1)**2
+      return (x[0] - x[1])**2 + 5.0 * ((x[0]**2 + x[1]**2)/(R+r)**2 - 1)**2
 
 def reference_density(idx) :
     # compute the reference density 
@@ -39,15 +39,15 @@ def reference_density(idx) :
     true_density = [true_density[i] / norm_z for i in range(num_x)]
     return true_density
 
-#working_dir_name = '../working_dir_task5/'
-job_id = 1
-working_dir_name = '../working_dir_test/'
+job_id = 11
+working_dir_name = '../working_dir_task%d/' % job_id
+#working_dir_name = '../working_dir_test/'
 dim = 3
 pot_id = 1
 output_every_k = 1
 R = 1.0
 r = 0.5
-beta = 10.0
+beta = 15.0
 lc = ['b', 'r', 'k', 'c', 'm', 'y']
 label_name = [r'$\phi$', r'$\theta$']
 

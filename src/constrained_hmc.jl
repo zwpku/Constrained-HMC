@@ -23,6 +23,7 @@ function forward_rattle(x, v, is_multiple_solution_step)
   else  # find multiple solutions 
     # be careful how the parameters are ordered in p
     lam_x = find_multiple_solutions(x_tmp, grad_xi_vec)
+#=
     if solve_multiple_solutions_by_homotopy == 1 && use_newton_with_homotopy_flag == 1
       num, lam_x_tmp = find_solution_by_newton(x_tmp, grad_xi_vec)
       if size(lam_x_tmp, 2) == 1 # one solution is found by Newton 
@@ -41,8 +42,10 @@ function forward_rattle(x, v, is_multiple_solution_step)
         end
       end
     end
+=#
   end
   n = size(lam_x, 2)
+
   # if we find at least one solutions
   if n > 0
     if n == 1 # if there is only one solution
@@ -56,7 +59,7 @@ function forward_rattle(x, v, is_multiple_solution_step)
 	for i in 1:n
 	  dist[i] = norm(x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,i] - x)
 	end
-	# sort accrording to the distance
+	# sort accrording to the distance (ascent)
 	perm = sortperm(dist)
 	# generate a random number uniformly in [0,1]
 	r = rand()
@@ -104,6 +107,7 @@ function backward_check(x1, v1, x, v, is_multiple_solution_step)
   else  # find multiple solutions
     # be careful how the parameters are ordered in p
     lam_x = find_multiple_solutions(x_tmp, grad_xi_vec)
+#=
     if solve_multiple_solutions_by_homotopy == 1 && use_newton_with_homotopy_flag == 1
       num, lam_x_tmp = find_solution_by_newton(x_tmp, grad_xi_vec)
       if size(lam_x_tmp, 2) == 1 # one solution is found by Newton 
@@ -122,6 +126,7 @@ function backward_check(x1, v1, x, v, is_multiple_solution_step)
         end
       end
     end
+=#
   end
   n_back = size(lam_x, 2)
   backward_found_flag = 0
@@ -175,6 +180,10 @@ backward_success_counter = 0
 single_solution_step_counter = 0
 stat_success_counter = 0
 stat_average_distance = 0
+stat_average_jump_dist_in_multiple_sol_step = 0.0
+stat_success_counter_in_multiple_sol_step = 0.0
+backward_success_counter_in_multiple_step = 0
+
 stat_average_xi = 0
 
 stat_num_of_solution_forward = zeros(max_no_sol+1)
@@ -182,12 +191,15 @@ stat_num_of_solution_backward = zeros(max_no_sol+1)
 
 # when mutilple solutions will be solved 
 if solve_multiple_solutions_frequency > 0
-  # initialize the vector pj_vec 
-  if user_defined_pj_flag == 1
-    pj_vec = [[1.0], [0.0, 1.0], [0.6, 0.3, 0.1], [0.6, 0.2, 0.1, 0.1]]
-  else #uniform distribution
+  if user_defined_pj_flag == 0
+    # initialize the vector pj_vec as uniform distribution
     pj_vec = [[1.0 / i for j in 1:i] for i in 1:max_no_sol]
   end
+  println("\nProb. distribution pj: ")
+  for pj in pj_vec
+    print(pj, ';')
+  end
+  println('\n')
   pj_acc_vec = similar(pj_vec)
   for i in 1:max_no_sol
     pj_acc_vec[i] = cumsum(pj_vec[i])
@@ -199,11 +211,12 @@ if solve_multiple_solutions_frequency > 0
   end
 
   if solve_multiple_solutions_by_homotopy == 1  
+#=
     if use_newton_with_homotopy_flag == 1
       global new_newton_solution_in_homotopy_forward_counter = 0
       global new_newton_solution_in_homotopy_backward_counter = 0
     end
-
+=#
     # prepare the start system
 #   p0 = randn(Complex{Float32}, (1+k)*d)
     p0 = zeros(Complex{Float32}, k+1, d)
@@ -256,7 +269,7 @@ start_time = time()
 @time begin
 # the main loop 
 for i in 1:N
-  global x0, v0, forward_success_counter, backward_success_counter, stat_success_counter, stat_num_of_solution_forward, stat_num_of_solution_backward, stat_average_distance, stat_average_xi
+  global x0, v0, forward_success_counter, backward_success_counter, stat_success_counter, stat_num_of_solution_forward, stat_num_of_solution_backward, stat_average_distance, stat_average_xi 
 
   # statistics
   stat_average_xi += norm(xi(x0))
@@ -324,6 +337,9 @@ for i in 1:N
   end
   if found_flag == 1 # if the backward check is passed 
     backward_success_counter += 1
+    if is_multiple_solution_step == 1
+      global backward_success_counter_in_multiple_step += 1
+    end
     h = energy(x0, v0) 
     h_1 = energy(x1, v1) 
 #      @printf("n=%d, pj = %.3f n_back=%d, pj_back=%.3f\n", n, pj, n_back, pj_back)
@@ -333,6 +349,10 @@ for i in 1:N
     if r < mh_rate # accept the proposal
       stat_success_counter += 1
       stat_average_distance += norm(x1-x0)
+      if is_multiple_solution_step == 1
+        global stat_average_jump_dist_in_multiple_sol_step += norm(x1-x0)
+	global stat_success_counter_in_multiple_sol_step += 1
+      end
       x0 = x1
       v0 = v1
       continue
@@ -352,24 +372,37 @@ end
 
 @printf("\nForward_success_counter = %d (%.1f%%)\nBackward_success_counter = %d (%.1f%%)\n", forward_success_counter, forward_success_counter * 100 / N, backward_success_counter, backward_success_counter * 100 / forward_success_counter)
 
-@printf("Average MH rate = %.3f\nTotal successful jump rate = %.3f\nAverage jump distance (including no jump)= %.3f (%.3f)\n", stat_success_counter * 1.0 / backward_success_counter, stat_success_counter / N, stat_average_distance * 1.0 / stat_success_counter, stat_average_distance * 1.0 / N)
-
 @printf("\nNo. of steps finding single solution (via Newton's method): %d\n", single_solution_step_counter)
 
-if solve_multiple_solutions_by_homotopy == 1
-  @printf("No. of steps finding multiple solution (via HomotopyContinuation package): %d\n", N - single_solution_step_counter)
-  if use_newton_with_homotopy_flag == 1
-   @printf("\tIn %d (%d) of %d steps, Newton's solution is added in farward (backward) rattle.\n", new_newton_solution_in_homotopy_forward_counter, new_newton_solution_in_homotopy_backward_counter, N - single_solution_step_counter)
+if single_solution_step_counter < N 
+  if solve_multiple_solutions_by_homotopy == 1
+    @printf("No. of steps finding multiple solution (via HomotopyContinuation package): %d\n", N - single_solution_step_counter)
+  #=
+    if use_newton_with_homotopy_flag == 1
+     @printf("\tIn %d (%d) of %d steps, Newton's solution is added in farward (backward) rattle.\n", new_newton_solution_in_homotopy_forward_counter, new_newton_solution_in_homotopy_backward_counter, N - single_solution_step_counter)
+    end
+  =#
+  else 
+    @printf("No. of steps finding multiple solution (via PolynomialRoots package): %d\n", N - single_solution_step_counter)
   end
-else 
-  @printf("No. of steps finding multiple solution (via PolynomialRoots package): %d\n", N - single_solution_step_counter)
 end
 
 if solve_multiple_solutions_frequency > 0 && refine_by_newton_max_step > 0
   @printf("Total No. of Newton's itereations to refine solutions: %d, on average: %.1f\n", stat_tot_refine_newton_steps, stat_tot_refine_newton_steps / (N- single_solution_step_counter))
 end
 
-@printf("Average |xi(x)| : %.3e\n", stat_average_xi / N)
+# in Newton step
+if single_solution_step_counter > 0
+  @printf("\nIn Newton solution steps:\n\tAverage MH rate = %.3f\n\tSuccessful jump rate = %.3f\n\tAverage jump distance (including no jump) = %.3f (%.3f)", (stat_success_counter - stat_success_counter_in_multiple_sol_step) * 1.0 / (backward_success_counter - backward_success_counter_in_multiple_step), (stat_success_counter - stat_success_counter_in_multiple_sol_step) * 1.0 / single_solution_step_counter, (stat_average_distance - stat_average_jump_dist_in_multiple_sol_step) * 1.0 / (stat_success_counter - stat_success_counter_in_multiple_sol_step), (stat_average_distance - stat_average_jump_dist_in_multiple_sol_step) * 1.0 / single_solution_step_counter )
+end
+
+if single_solution_step_counter < N
+  @printf("\nIn multiple solution steps:\n\tAverage MH rate = %.3f\n\tSuccessful jump rate = %.3f\n\tAverage jump distance (including no jump) = %.3f (%.3f)", stat_success_counter_in_multiple_sol_step * 1.0 / backward_success_counter_in_multiple_step, stat_success_counter_in_multiple_sol_step * 1.0 / (N - single_solution_step_counter), stat_average_jump_dist_in_multiple_sol_step * 1.0 / stat_success_counter_in_multiple_sol_step, stat_average_jump_dist_in_multiple_sol_step * 1.0 / (N - single_solution_step_counter) )
+end
+
+@printf("\nIn total:\n\tAverage MH rate = %.3f\n\tTotal successful jump rate = %.3f\n\tAverage jump distance (including no jump)= %.3f (%.3f)\n", stat_success_counter * 1.0 / backward_success_counter, stat_success_counter / N, stat_average_distance * 1.0 / stat_success_counter, stat_average_distance * 1.0 / N)
+
+@printf("\nAverage |xi(x)| : %.3e\n", stat_average_xi / N)
   
 println("\nNo. of solutions in forward rattle:")
 for i in 1:(max_no_sol+1)

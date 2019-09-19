@@ -16,10 +16,13 @@ r = 0.5
 # how many different quantities of interest (QoI) will be recorded
 num_qoi = 2
 # for each quantity of interest, it contains number of bins, lower and upper ranges of the histgram.
-qoi_hist_info = [[100, 0.0, 2*pi], [100, 0.0, 2*pi]] 
+qoi_hist_info = [[200, 0.0, 2*pi], [200, 0.0, 2*pi]] 
 
 # initial state
 x0 = [(R+r)/sqrt(2), (R+r)/sqrt(2), 0]
+
+# user-defined prob. distribution
+pj_vec = [[1.0], [0.4, 0.6], [0.2, 0.4, 0.4], [0.2, 0.3, 0.3, 0.2]]
 
 # potential in the target distribution
 function V(x)

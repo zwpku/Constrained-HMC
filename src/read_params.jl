@@ -38,8 +38,10 @@ solve_multiple_solutions_frequency = cfg_data["solve_multiple_solutions_frequenc
 # whether use HomotopyContinuation package or not 
 solve_multiple_solutions_by_homotopy = cfg_data["solve_multiple_solutions_by_homotopy"]
 
-# When HomotopyContinuation is used, whether also use Newton's method
-use_newton_with_homotopy_flag = cfg_data["use_newton_with_homotopy_flag"]
+#=
+When HomotopyContinuation is used, whether also use Newton's method
+ use_newton_with_homotopy_flag = cfg_data["use_newton_with_homotopy_flag"]
+=#
 
 # always use Newton's method, if the constraint equation is not polynomial
 if degree_polynomial_constraint == 0 && solve_multiple_solutions_frequency > 0
@@ -66,6 +68,14 @@ if solve_multiple_solutions_frequency > 0
     # solve scalar constraint equation by PolynomialRoots package.
     polyroot_solver_eps = cfg_data["polyroot_solver_eps"]
   end
+
+  # if this flag is one, indices are chosen according to the 
+  # pre-defined probability distributions, based on their distances.
+  user_defined_pj_flag = cfg_data["user_defined_pj_flag"]
+  if user_defined_pj_flag == 1 && @isdefined(pj_vec) == false 
+    @printf("Warning: pj_vec is not defined! Uniform distribution will be used instead.")
+    user_defined_pj_flag = 0
+  end
 end
 
 # upper bound of solution number
@@ -80,9 +90,5 @@ end
 newton_matrix_solver_tol = cfg_data["newton_matrix_solver_tol"]
 newton_res_tol = cfg_data["newton_res_tol"]
 newton_max_steps = cfg_data["newton_max_steps"]
-
-# if this flag is one, indices are chosen according to the 
-# pre-defined probability distributions, based on their distances.
-user_defined_pj_flag = cfg_data["user_defined_pj_flag"]
 
 println("Reading parameters from file...done.")

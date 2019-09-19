@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-working_dir_name = '../working_dir_test/'
-job_id = 1
+job_id = 11
+working_dir_name = '../working_dir_task%d/' % job_id
 dim = 3
 output_every_k = 1
 lc = ['b', 'r', 'k', 'c', 'm', 'y']

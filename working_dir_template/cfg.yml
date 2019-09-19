@@ -34,8 +34,6 @@ newton_max_steps : 10
 solve_multiple_solutions_frequency : 50
 # whether HomotopyContinuation package will be used.
 solve_multiple_solutions_by_homotopy : 1
-# When HomotopyContinuation is used, whether also use Newton's method
-use_newton_with_homotopy_flag : 0
 # When solving multiple solutions, a solution will be consider to be new solution, if the difference is larger
 # than this tolerance.
 new_sol_tol : 1e-6
