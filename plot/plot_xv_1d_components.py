@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-job_id = 11
+job_id = 10
 working_dir_name = '../working_dir_task%d/' % job_id
 dim = 3
 output_every_k = 1

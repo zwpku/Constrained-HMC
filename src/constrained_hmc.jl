@@ -180,9 +180,11 @@ backward_success_counter = 0
 single_solution_step_counter = 0
 stat_success_counter = 0
 stat_average_distance = 0
+stat_large_jump_counter = 0
 stat_average_jump_dist_in_multiple_sol_step = 0.0
 stat_success_counter_in_multiple_sol_step = 0.0
 backward_success_counter_in_multiple_step = 0
+stat_large_jump_counter_in_multiple_sol_step = 0
 
 stat_average_xi = 0
 
@@ -349,9 +351,15 @@ for i in 1:N
     if r < mh_rate # accept the proposal
       stat_success_counter += 1
       stat_average_distance += norm(x1-x0)
+      if x1[1] * x0[1] < 0 # change the sign
+        global stat_large_jump_counter += 1
+      end
       if is_multiple_solution_step == 1
         global stat_average_jump_dist_in_multiple_sol_step += norm(x1-x0)
 	global stat_success_counter_in_multiple_sol_step += 1
+	if x1[1] * x0[1] < 0 # change the sign
+	  global stat_large_jump_counter_in_multiple_sol_step += 1
+	end
       end
       x0 = x1
       v0 = v1
@@ -394,13 +402,16 @@ end
 # in Newton step
 if single_solution_step_counter > 0
   @printf("\nIn Newton solution steps:\n\tAverage MH rate = %.3f\n\tSuccessful jump rate = %.3f\n\tAverage jump distance (including no jump) = %.3f (%.3f)", (stat_success_counter - stat_success_counter_in_multiple_sol_step) * 1.0 / (backward_success_counter - backward_success_counter_in_multiple_step), (stat_success_counter - stat_success_counter_in_multiple_sol_step) * 1.0 / single_solution_step_counter, (stat_average_distance - stat_average_jump_dist_in_multiple_sol_step) * 1.0 / (stat_success_counter - stat_success_counter_in_multiple_sol_step), (stat_average_distance - stat_average_jump_dist_in_multiple_sol_step) * 1.0 / single_solution_step_counter )
+  @printf("\n\tNo. of making large jumps: %d\n", stat_large_jump_counter - stat_large_jump_counter_in_multiple_sol_step) 
 end
 
 if single_solution_step_counter < N
   @printf("\nIn multiple solution steps:\n\tAverage MH rate = %.3f\n\tSuccessful jump rate = %.3f\n\tAverage jump distance (including no jump) = %.3f (%.3f)", stat_success_counter_in_multiple_sol_step * 1.0 / backward_success_counter_in_multiple_step, stat_success_counter_in_multiple_sol_step * 1.0 / (N - single_solution_step_counter), stat_average_jump_dist_in_multiple_sol_step * 1.0 / stat_success_counter_in_multiple_sol_step, stat_average_jump_dist_in_multiple_sol_step * 1.0 / (N - single_solution_step_counter) )
+  @printf("\n\tNo. of making large jumps: %d\n", stat_large_jump_counter_in_multiple_sol_step) 
 end
 
 @printf("\nIn total:\n\tAverage MH rate = %.3f\n\tTotal successful jump rate = %.3f\n\tAverage jump distance (including no jump)= %.3f (%.3f)\n", stat_success_counter * 1.0 / backward_success_counter, stat_success_counter / N, stat_average_distance * 1.0 / stat_success_counter, stat_average_distance * 1.0 / N)
+@printf("\tNo. of making large jumps: %d\n", stat_large_jump_counter) 
 
 @printf("\nAverage |xi(x)| : %.3e\n", stat_average_xi / N)
   
