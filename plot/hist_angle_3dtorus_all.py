@@ -49,7 +49,7 @@ pot_id = 1
 
 lc = ['k', 'r', 'k', 'c', 'm', 'y', 'y']
 ls = ['--', '--', '--', '--', '--', '--', '--']
-mks= ['o', 's', '^', 'x', 'v', 'D', 'h']
+mks= [['+', 's', 'D', 'o', 'x', 'v', 'h'], ['+', 's', 'o', 'x', 'v', 'D', 'h']]
 lab_vec = [r'$\phi$', r'$\theta$']
 
 if pot_id == 0:
@@ -58,8 +58,6 @@ if pot_id == 0:
 else:
     label_names = ['PR', 'PR50-far', 'Newton', 'Hom', 'Hom50-far']
     job_idx_vec = [9, 11, 8, 10, 12]
-
-mk_every_vec = [10, 12]
 
 for angle_idx in range(2):
     fig, ax = plt.subplots(1, 1, figsize=(8, 5))
@@ -83,14 +81,16 @@ for angle_idx in range(2):
         xx = np.linspace( qoi_hist_info[0][1], qoi_hist_info[0][2], int(qoi_hist_info[0][0]) )
         density = [x  / (N * qoi_hist_info[0][3]) for x in qoi_counter[angle_idx]]
 
-        plt.plot(xx, density, color=lc[0], linestyle=ls[j_idx], marker=mks[j_idx], markevery= 10, fillstyle='none', label= label_names[j_idx] )
+        plt.plot(xx, density, color=lc[0], linestyle=ls[j_idx],
+                marker=mks[pot_id][j_idx], markevery= 8, fillstyle='none', label= label_names[j_idx] )
 
     plt.xticks([0, math.pi/2, math.pi, math.pi * 3.0 /2, 2.0 * math.pi], ['0', r'$\pi/2$', r'$\pi$', r'$3\pi/2$', r'$2\pi$'], fontsize=22)
     plt.yticks(fontsize=22)
     plt.title('Probability density of '+lab_vec[angle_idx], fontsize=22)
 #    plt.xlabel(lab_vec[angle_idx], fontsize=22)
-#    plt.gca().set_ylim(0.0, 0.34)
-    plt.legend(bbox_to_anchor=(0.15, 0.5, 0.9, 0.52), fontsize=20, ncol=2)
+    plt.gca().set_ylim(-0.07, 4.1)
+#    plt.legend(bbox_to_anchor=(0.25, 0.62, 0.9, 0.22), fontsize=20, ncol=2)
+    plt.legend(bbox_to_anchor=(0.27, 0.60, 0.4, 0.22), fontsize=20, ncol=2, frameon=False)
     fig.tight_layout()
     out_fig_name = './hist_angle_3dtorus_%dth.eps' % angle_idx
     fig.savefig(out_fig_name)

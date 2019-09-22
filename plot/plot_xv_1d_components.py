@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-job_id = 10
+job_id = 11
 working_dir_name = '../working_dir_task%d/' % job_id
 dim = 3
-output_every_k = 1
+output_every_k = 1000
 lc = ['b', 'r', 'k', 'c', 'm', 'y']
 
 data_file_name = '%s/traj_data_%d.txt' % (working_dir_name, job_id)
