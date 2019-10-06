@@ -49,11 +49,11 @@ pot_id = 1
 
 lc = ['k', 'r', 'k', 'c', 'm', 'y', 'y']
 ls = ['--', '--', '--', '--', '--', '--', '--']
-mks= [['+', 's', 'D', 'o', 'x', 'v', 'h'], ['+', 's', 'o', 'x', 'v', 'D', 'h']]
+mks= [['+', 's', 'D', 'o', 'x', 'v', '^'], ['+', 'D', 'o', 'x', '^', 'D', '^']]
 lab_vec = [r'$\phi$', r'$\theta$']
 
 if pot_id == 0:
-    label_names = ['PR', 'PR-far', 'PR50', 'Newton', 'Hom', 'Hom-far', 'Hom50']
+    label_names = ['PR', 'PR-far', 'PR50-far', 'Newton', 'Hom', 'Hom-far', 'Hom50-far']
     job_idx_vec = [2, 6, 4, 1, 3, 7, 5]
 else:
     label_names = ['PR', 'PR50-far', 'Newton', 'Hom', 'Hom50-far']
@@ -87,11 +87,19 @@ for angle_idx in range(2):
     plt.xticks([0, math.pi/2, math.pi, math.pi * 3.0 /2, 2.0 * math.pi], ['0', r'$\pi/2$', r'$\pi$', r'$3\pi/2$', r'$2\pi$'], fontsize=22)
     plt.yticks(fontsize=22)
     plt.title('Probability density of '+lab_vec[angle_idx], fontsize=22)
+    if pot_id == 0:
 #    plt.xlabel(lab_vec[angle_idx], fontsize=22)
-    plt.gca().set_ylim(-0.07, 4.1)
-#    plt.legend(bbox_to_anchor=(0.25, 0.62, 0.9, 0.22), fontsize=20, ncol=2)
-    plt.legend(bbox_to_anchor=(0.27, 0.60, 0.4, 0.22), fontsize=20, ncol=2, frameon=False)
-    fig.tight_layout()
-    out_fig_name = './hist_angle_3dtorus_%dth.eps' % angle_idx
-    fig.savefig(out_fig_name)
+        plt.gca().set_ylim(0.05, 0.34)
+        #plt.legend(bbox_to_anchor=(0.25, 0.62, 0.9, 0.22), fontsize=20, ncol=2)
+        plt.legend(bbox_to_anchor=(0.28, 0.56, 0.4, 0.22), fontsize=19, ncol=2, frameon=False)
+        fig.tight_layout()
+        out_fig_name = './hist_angle_3dtorus_%dth.eps' % angle_idx
+        fig.savefig(out_fig_name)
+    else:
+#        plt.gca().set_ylim(-0.07, 4.1)
+        plt.legend(bbox_to_anchor=(0.27, 0.60, 0.4, 0.22), fontsize=20, ncol=2, frameon=False)
+        fig.tight_layout()
+        out_fig_name = './hist_angle_3dtorus_%dth_bimodal.eps' % angle_idx
+        fig.savefig(out_fig_name)
+
 
