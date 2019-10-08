@@ -17,7 +17,7 @@ angle_idx = 1
 N = int(1e7)
 num_jobs = len(job_idx_vec)
 
-fig, ax = plt.subplots(1, num_jobs, sharey=True, gridspec_kw={'hspace': 0}, figsize=(8, 3))
+fig, ax = plt.subplots(1, num_jobs, sharey=True, gridspec_kw={'hspace': 0}, figsize=(10, 3))
 
 for idx in range(num_jobs):
     job_id = job_idx_vec[idx]
@@ -27,11 +27,12 @@ for idx in range(num_jobs):
     len_data = len(xv_data[:,0])
     print ("%d samples are loaded from: %s" % (len_data, qoi_data_file_name))
     num_data_to_plot = int(len_data / output_every_k[idx])
+    print (num_data_to_plot)
     xx = np.linspace(0, N, num_data_to_plot)
     ax[idx].plot(xx, xv_data[0::output_every_k[idx], angle_idx][0:num_data_to_plot], color='b', linestyle='-', linewidth=1)
     ax[idx].set_ylim([0, 3.0 / 2 * math.pi])
     ax[idx].set_xticks([0, N/2, N])
-    ax[idx].set_xticklabels([r'$0$', r'$10^6$', r'$10^7$'], fontsize=18)
+    ax[idx].set_xticklabels([r'$0$', r'$5\times 10^6$', r'$10^7$'], fontsize=18)
     ax[idx].set_title(title_names[idx], fontsize=18)
 
 #    plt.plot(xv_data[1::,i], color=lc[i], linestyle='-', label='x_%d' % i)
