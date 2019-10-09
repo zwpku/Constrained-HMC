@@ -57,6 +57,7 @@ function forward_rattle(x, v, is_multiple_solution_step)
 	dist = zeros(n)
 	# compute the distance wrt x for each proposal
 	for i in 1:n
+          tmp = x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,i]
 	  dist[i] = norm(x_tmp + step_size * transpose(grad_xi_vec) * lam_x[:,i] - x)
 	end
 	# sort accrording to the distance (ascent)
@@ -306,7 +307,7 @@ for i in 1:N
         idx = 1
       end 
       if idx > qoi_hist_info[j][1] 
-        idx = qoi_hist_info[j][1]
+        idx = trunc(Int32, qoi_hist_info[j][1])
       end 
       qoi_counter[j][idx] += 1
     end
