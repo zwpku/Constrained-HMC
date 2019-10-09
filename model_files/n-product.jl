@@ -7,7 +7,7 @@
 d = 2
 k = 1
 
-beta = 15.0
+beta = 1.0
 
 # parameters of the ellipse 
 c=1.0
@@ -25,12 +25,12 @@ pj_vec = [[1.0], [0.4, 0.6], [0.2, 0.4, 0.4], [0.2, 0.3, 0.3, 0.2]]
 
 # potential in the target distribution
 function V(x)
- return 0.0
+ return 0.5 * (norm(x)^2 - d * c^(2.0/d))
 end
 
 # gradient of potential V
 function grad_V(x)
-  return zeros(d)
+  return x
 end
 
 # quantity of interest
