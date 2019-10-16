@@ -45,7 +45,6 @@ function forward_rattle(x, v, is_multiple_solution_step)
 =#
   end
   n = size(lam_x, 2)
-
   # if we find at least one solutions
   if n > 0
     if n == 1 # if there is only one solution
@@ -221,16 +220,13 @@ if solve_multiple_solutions_frequency > 0
     end
 =#
     # prepare the start system
-#   p0 = randn(Complex{Float32}, (1+k)*d)
+    # the performance of HomotopyContinuation package seems sensitive to the choice of p0.
     p0 = zeros(Complex{Float32}, k+1, d)
-    for idx in 1:k
-      p0[1+idx, :] = randn(d)
-      r = norm(p0[1+idx,:])
-      p0[1+idx,:] /= r
-    end
-    p0[1,:] = randn(Complex{Float32}, d)
+    p0[2:(k+1), :] = grad_xi(x0, 1) + randn(Complex{Float32}, k, d)
+    p0[1,:] = x0 + randn(Complex{Float32}, d)
     p0 = reshape(p0, (1+k)*d, 1)[:,1]
     F_p = subs(F, p => p0)
+    println("p0=", p0)
     # Compute all solutions for F_p .
     # According to the package's usage, Total Degree Homotopy is used.
     # Note that random number generators are used inside this function.

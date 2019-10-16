@@ -28,7 +28,7 @@ function find_solutions_by_tracking(p_current)
     # Create an empty array.
     S_p = similar(S_p0, 0)
     for s in S_p0
-       result = track(tracker, s; target_parameters=p_current, accuracy=1e-9)
+       result = track(tracker, s; target_parameters=p_current, accuracy=1e-8)
         # check that the tracking was successfull
        if is_success(result) 
 	 push!(S_p, solution(result))
@@ -45,20 +45,20 @@ function find_solution_by_newton(xtmp, grad_xi_vec; res_tol=newton_res_tol, max_
   iter = 0
   while norm(b) > res_tol && iter < max_steps
     mat = grad_xi(x_now, 0) * transpose(grad_xi_vec)
-    lam += -1.0 * lsmr(mat, b, atol=newton_matrix_solver_tol, btol=newton_matrix_solver_tol) / step_size 
+    lam += -1.0 * lsmr(mat, b, atol=newton_matrix_solver_tol, btol=newton_matrix_solver_tol) / step_size
     x_now = xtmp + step_size * transpose(grad_xi_vec) * lam
     b = xi(x_now)
     iter += 1
   end
   if norm(b) < res_tol
-    return iter, reshape(lam, k, 1)
+    return iter, reshape(lam, k, 1) 
   else # return empty set, no solution has been found
     return iter, Array{Float64}(undef, 0, 0)
   end
 end
 
 function find_multiple_solutions(x_tmp, grad_xi_vec)
-  p_current = vcat(x_tmp, step_size * reshape(transpose(grad_xi_vec), length(grad_xi_vec), 1)[:,1])
+  p_current = vcat(x_tmp, reshape(transpose(grad_xi_vec), length(grad_xi_vec), 1)[:,1])
   if solve_multiple_solutions_by_homotopy == 1 
     roots_vec = find_solutions_by_tracking(p_current)
   else #instead of using HomotopyContinuation, we use PolynomialRoots package (for k=1)
@@ -77,7 +77,7 @@ function find_multiple_solutions(x_tmp, grad_xi_vec)
     if tmp > 1e-8 
       continue
     end
-    tmp_real = [roots_vec[idx][i].re for i in 1:k]
+    tmp_real = [roots_vec[idx][i].re / step_size for i in 1:k]
     # refine the solution using Newton's method
     if refine_by_newton_max_step > 0
       num, tmp_real = find_solution_by_newton(x_tmp, grad_xi_vec, res_tol= check_tol, max_steps=refine_by_newton_max_step, lam0=tmp_real)
@@ -102,6 +102,6 @@ function find_multiple_solutions(x_tmp, grad_xi_vec)
   for ii in 1:n
     sol_vec[:, ii] = prev_sol_vec[ii]
   end
-  return sol_vec
+  return sol_vec 
 end
 
