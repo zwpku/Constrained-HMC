@@ -1,16 +1,16 @@
 # ************************************
 # This file specifies the model. 
-# It defines functions related to 3d-torus.
 # ************************************
 
 # the reaction coordniate map \xi: \mathbb{R}^d -> \mathbb{R}^k
-d = 2
-k = 1
+d = 3
+k = 2
 
 beta = 1.0
 
 # parameters of the ellipse 
-c=1.0
+R = 3.0
+c= 1.0
 
 # how many different quantities of interest (QoI) will be recorded
 num_qoi = 1
@@ -18,7 +18,7 @@ num_qoi = 1
 qoi_hist_info = [[200, 0.0, 2*pi]] 
 
 # initial state
-x0 = ones(d) * c^(1.0/d) 
+x0 = ones(d)  
 
 # user-defined prob. distribution
 pj_vec = [[1.0], [0.4, 0.6], [0.2, 0.4, 0.4], [0.2, 0.3, 0.3, 0.2]]
@@ -39,15 +39,23 @@ function QoI(x)
 end
 
 # the ith component \xi_i of the map \xi.
-# In this example, \xi is scalar and therefore i=1.
+# In this example, k=2, therefore, i=1 or 2.
 
 function xi_i(x, idx)
-  return prod(x) - c
+  if idx == 1
+    return prod(x) - c
+  else
+    return 0.5 * (sum(x .^ 2) - R^2)
+  end
 end
 
 # gradient of the ith component \xi_i of the map \xi
 function grad_xi_i(x, idx)
-  return [c/tmp for tmp in x]
+  if idx == 1
+    return [c/tmp for tmp in x]
+  else 
+    return x
+  end
 end
 
 if solve_multiple_solutions_frequency > 0 
@@ -58,5 +66,6 @@ if solve_multiple_solutions_frequency > 0
   #
   # The general form is \xi_i(x + \nabla\xi \lam) = 0, 
   # where \lam is the unknown multipliers, x is given by p[1:d], and \nabla\xi is given by p[(d+1):((k+1)*d)]
-  F = [prod([(p[i] + p[d+i]*lam[1]) for i in 1:d]) - c] 
+
+  F = [prod([(p[i] + p[d+i]*lam[1] + p[2*d+i]*lam[2]) for i in 1:d]) - c, 0.5 * (sum([(p[i] + p[d+i]*lam[1] + p[2*d+i]*lam[2])^2 for i in 1:d]) - R^2) ] 
 end

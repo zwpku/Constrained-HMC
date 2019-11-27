@@ -3,13 +3,13 @@
 # ************************************
 
 # the reaction coordniate map \xi: \mathbb{R}^d -> \mathbb{R}^k
-d = 2
+d = 5
 k = 1
 
 beta = 1.0
 
 # parameters of the ellipse 
-c=1.0
+c=2.0
 
 # how many different quantities of interest (QoI) will be recorded
 num_qoi = 1
@@ -43,13 +43,14 @@ end
 # In this example, \xi is scalar and therefore i=1.
 
 function xi_i(x, idx)
-  return 0.5 * ((x[1]^2 - c^2)^2 + sum(x[2:] .^ 2) - 1.0)
+  return 0.5 * ((x[1]^2 - c^2)^2 + sum(x[2:d] .^ 2) - 1.0)
 end
 
 # gradient of the ith component \xi_i of the map \xi
 function grad_xi_i(x, idx)
-  tmp = x
+  tmp = zeros(d)
   tmp[1] = 2 * x[1] * (x[1]^2 - c^2)
+  tmp[2:d] = x[2:d]
   return tmp
 end
 

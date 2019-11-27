@@ -168,6 +168,11 @@ function rand_draw_velocity(x)
   grad_xi_vec = grad_xi(x, 1)
   # generate the orthnormal basis of the tangent space
   U_x = nullspace(grad_xi_vec)
+  if size(U_x, 2) != d-k
+     @printf("Error: the dimension (=%d, should be %d) of tangent space is wrong!\n", size(U_x,2), d-k)
+     println("\tState x = ", x)
+     exit(1)
+  end
   # generate normal Gaussian vector, as coefficients under the basis  
   coeff = randn(d-k)
   return U_x * coeff / sqrt(beta)
@@ -190,6 +195,11 @@ stat_average_xi = 0
 
 stat_num_of_solution_forward = zeros(max_no_sol+1)
 stat_num_of_solution_backward = zeros(max_no_sol+1)
+
+# when the initial state is not on the level set
+if norm(xi(x0)) > check_tol 
+  solve an ODE flow
+end
 
 # when mutilple solutions will be solved 
 if solve_multiple_solutions_frequency > 0
