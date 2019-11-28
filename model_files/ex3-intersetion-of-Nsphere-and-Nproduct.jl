@@ -19,6 +19,7 @@ qoi_hist_info = [[200, 0.0, 2*pi]]
 
 # initial state
 x0 = ones(d)  
+x0[1] = 2.0
 
 # user-defined prob. distribution
 pj_vec = [[1.0], [0.4, 0.6], [0.2, 0.4, 0.4], [0.2, 0.3, 0.3, 0.2]]
@@ -52,7 +53,8 @@ end
 # gradient of the ith component \xi_i of the map \xi
 function grad_xi_i(x, idx)
   if idx == 1
-    return [c/tmp for tmp in x]
+    tot_prod = prod(x)
+    return [tot_prod/tmp for tmp in x]
   else 
     return x
   end

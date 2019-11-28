@@ -22,19 +22,15 @@ function energy(x,v)
   return V(x) + dot(v,v) * 0.5
 end
 
-function ode_f(df, x, p, t)
-  g_xi_vec = grad_xi(x, 0)
-  xi_vec = xi(x)
-  df = - transpose(g_xi_vec) * xi_vec
+function ode_f(u,p,t)
+  return -1.0 * transpose(grad_xi(u, 0)) * xi(u)
 end
 
 function find_initial_state_by_ODE(x0)
-  alg = Tsit5()
-  tsan = (0.0, 10.0)
+  tspan = (0.0, 100.0)
   prob = ODEProblem(ode_f, x0, tspan)
-  sol = solve(prob, Tsit5(), reltol=1e-8, abstol=1e-8)
-  println("sol=", sol)
-  x0 = sol(10.0)
+  sol = OrdinaryDiffEq.solve(prob, DynamicSS(Tsit5()), save_everystep=false)
+  x0 = sol[2]
   return x0
 end
 

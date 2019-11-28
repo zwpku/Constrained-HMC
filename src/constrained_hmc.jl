@@ -5,7 +5,8 @@ using IterativeSolvers
 using PyPlot
 using DelimitedFiles
 using Printf
-using OrdinaryDiffEq
+#using OrdinaryDiffEq
+using DifferentialEquations
 
 include("read_params.jl")
 
@@ -200,7 +201,7 @@ stat_num_of_solution_backward = zeros(max_no_sol+1)
 # when the initial state is not on the level set
 if norm(xi(x0)) > check_tol 
   println("xi=", norm(xi(x0)))
-  find_initial_state_by_ODE(x0)
+  x0 = find_initial_state_by_ODE(x0)
   println("xi=", norm(xi(x0)))
 end
 
@@ -243,7 +244,7 @@ if solve_multiple_solutions_frequency > 0
     # Compute all solutions for F_p .
     # According to the package's usage, Total Degree Homotopy is used.
     # Note that random number generators are used inside this function.
-    result_p = solve(F_p)
+    result_p = HomotopyContinuation.solve(F_p)
     S_p0 = solutions(result_p)
     #Construct the PathTracker
     global tracker = pathtracker(F; parameters=p, generic_parameters=p0, accuracy_eg=1e-9)
