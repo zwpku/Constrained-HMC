@@ -5,6 +5,7 @@ using IterativeSolvers
 using PyPlot
 using DelimitedFiles
 using Printf
+using OrdinaryDiffEq
 
 include("read_params.jl")
 
@@ -198,7 +199,9 @@ stat_num_of_solution_backward = zeros(max_no_sol+1)
 
 # when the initial state is not on the level set
 if norm(xi(x0)) > check_tol 
-  solve an ODE flow
+  println("xi=", norm(xi(x0)))
+  find_initial_state_by_ODE(x0)
+  println("xi=", norm(xi(x0)))
 end
 
 # when mutilple solutions will be solved 

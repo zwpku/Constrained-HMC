@@ -22,6 +22,22 @@ function energy(x,v)
   return V(x) + dot(v,v) * 0.5
 end
 
+function ode_f(df, x, p, t)
+  g_xi_vec = grad_xi(x, 0)
+  xi_vec = xi(x)
+  df = - transpose(g_xi_vec) * xi_vec
+end
+
+function find_initial_state_by_ODE(x0)
+  alg = Tsit5()
+  tsan = (0.0, 10.0)
+  prob = ODEProblem(ode_f, x0, tspan)
+  sol = solve(prob, Tsit5(), reltol=1e-8, abstol=1e-8)
+  println("sol=", sol)
+  x0 = sol(10.0)
+  return x0
+end
+
 # Solve algebraic equations for given parameters p, with path tracking.
 # Note that random number generators are probably NOT used in this function!
 function find_solutions_by_tracking(p_current)
