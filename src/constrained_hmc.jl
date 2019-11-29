@@ -7,9 +7,9 @@ using DelimitedFiles
 using Printf
 #using OrdinaryDiffEq
 using DifferentialEquations
+using Base
 
 include("read_params.jl")
-
 include("utils.jl")
 
 # compute several possible proposal states, at the current state (x,v)
@@ -198,11 +198,17 @@ stat_average_xi = 0
 stat_num_of_solution_forward = zeros(max_no_sol+1)
 stat_num_of_solution_backward = zeros(max_no_sol+1)
 
+Base.show(io::IO, f::Float64)=@printf io "%.2f" f
+
 # when the initial state is not on the level set
 if norm(xi(x0)) > check_tol 
-  println("xi=", norm(xi(x0)))
+  @printf("\nInitial state, |xi(x0)| = %.2e\n", norm(xi(x0)))
   x0 = find_initial_state_by_ODE(x0)
-  println("xi=", norm(xi(x0)))
+  if norm(xi(x0)) > check_tol 
+    println("Error: failed to find an initial state on the level set!")
+    exit(1)
+  end
+  @printf("New inial state, |xi(x0)|=%.2e\n\n", norm(xi(x0)))
 end
 
 # when mutilple solutions will be solved 
@@ -212,10 +218,14 @@ if solve_multiple_solutions_frequency > 0
     pj_vec = [[1.0 / i for j in 1:i] for i in 1:max_no_sol]
   end
   println("\nProb. distribution pj: ")
-  for pj in pj_vec
-    print(pj, ';')
+  for idx in 1:length(pj_vec)
+    @printf("%d: ", idx)
+    for j in 1:idx
+      @printf("%.2f ", pj_vec[idx][j])
+    end
+    @printf("\n")
   end
-  println('\n')
+  println("\n")
   pj_acc_vec = similar(pj_vec)
   for i in 1:max_no_sol
     pj_acc_vec[i] = cumsum(pj_vec[i])
@@ -235,27 +245,44 @@ if solve_multiple_solutions_frequency > 0
 =#
     # prepare the start system
     # the performance of HomotopyContinuation package seems sensitive to the choice of p0.
-    p0 = zeros(Complex{Float32}, k+1, d)
-    p0[2:(k+1), :] = grad_xi(x0, 1) + randn(Complex{Float32}, k, d)
-    p0[1,:] = x0 + randn(Complex{Float32}, d)
-    p0 = reshape(p0, (1+k)*d, 1)[:,1]
-    F_p = subs(F, p => p0)
+    p0 = zeros(Complex{Float64}, k+1, d)
+    p0[2:(k+1), :] = grad_xi(x0, 1) + randn(Complex{Float64}, k, d)
+    p0[1,:] = x0 + randn(Complex{Float64}, d)
     println("p0=", p0)
+    p0 = reshape(p0, (1+k)*d, 1)[:,1]
+    F_p = [subs(f, p => p0) for f in F]
     # Compute all solutions for F_p .
     # According to the package's usage, Total Degree Homotopy is used.
     # Note that random number generators are used inside this function.
     result_p = HomotopyContinuation.solve(F_p)
+    println("\nResult of start system = ", result_p)
     S_p0 = solutions(result_p)
+#=
     #Construct the PathTracker
     global tracker = pathtracker(F; parameters=p, generic_parameters=p0, accuracy_eg=1e-9)
+    start_time = time()
+    p1 = randn(Complex{Float64}, (k+1)*d, 1)[:,1]
+    Gp = [subs(f, p => p1) for f in F]
+    for idx in 1:100
+    #  p1 = randn(Complex{Float64}, (k+1)*d, 1)[:,1]
+      println("idx=", idx)
+      rel = HomotopyContinuation.solve(F_p, Gp, S_p0)
+      println("rel=", rel)
+      flush(stdout)
+    end
+    current_time = time()
+    println("time used: ", current_time - start_time)
+
+    exit(0)
+=#
     num_sol_start_system = length(S_p0)
 
     if num_sol_start_system > 0
-      @printf("Starting systems:\n")
+      @printf("Solutions of starting systems:\n")
       for i in 1:num_sol_start_system
-        println(S_p0[i])
+        println("\t", S_p0[i])
       end
-      @printf("Total solution number=%d\nNo. of real solutions=%d\n", length(S_p0), nreal(result_p))
+      @printf("\nTotal solution number=%d\nNo. of real solutions=%d\n", length(S_p0), nreal(result_p))
     else 
       println("Error: couldn't find a start system with nonzero solutions!")
       exit(1)

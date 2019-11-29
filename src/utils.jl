@@ -38,14 +38,20 @@ end
 # Note that random number generators are probably NOT used in this function!
 function find_solutions_by_tracking(p_current)
     # Create an empty array.
+    Gp = [subs(f, p => p_current) for f in F]
+    R = HomotopyContinuation.solve(F_p, Gp, S_p0)
+    S_p = solutions(R, only_real=true, only_nonsingular=true)
+#    println("result=", S_p)
+#=
     S_p = similar(S_p0, 0)
     for s in S_p0
        result = track(tracker, s; target_parameters=p_current, accuracy=1e-8)
         # check that the tracking was successfull
-       if is_success(result) 
+       if issuccess(result) 
 	 push!(S_p, solution(result))
        end
     end
+=#
     return S_p
 end
 

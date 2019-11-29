@@ -56,8 +56,8 @@ for angle_idx in range(2):
     xx = np.linspace(0, 2.0 * math.pi, len(ref_density) )
     plt.plot(xx, ref_density, linestyle='-', color='k', label='true')
 
-#    for j in range(2, len(working_dir_vec)):
-    for j in range(0, 2):
+    for j in range(2, len(working_dir_vec)):
+#    for j in range(0, 2):
         data_file_name = '%s/qoi_counter_%d.txt' % (working_dir_vec[j], job_id_vec[j])
         infile = open(data_file_name, 'r')
 

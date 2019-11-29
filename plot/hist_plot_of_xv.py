@@ -4,12 +4,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-working_dir_name = '../'
-job_id = 4
-dim = 2
+working_dir_name = '../working_dir_ex3_test'
+job_id = 1
+dim = 3
 lc = ['b', 'r', 'k', 'c', 'm', 'y']
 
-data_file_name = '%s/data/data_%d.txt' % (working_dir_name, job_id)
+data_file_name = '%s/traj_data_%d.txt' % (working_dir_name, job_id)
 
 fig, ax = plt.subplots(1, 1, figsize=(8, 5))
 xv_data = np.loadtxt(data_file_name)

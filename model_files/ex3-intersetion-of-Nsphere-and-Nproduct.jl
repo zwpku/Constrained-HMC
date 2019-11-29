@@ -15,7 +15,7 @@ c= 1.0
 # how many different quantities of interest (QoI) will be recorded
 num_qoi = 1
 # for each quantity of interest, it contains number of bins, lower and upper ranges of the histgram.
-qoi_hist_info = [[200, 0.0, 2*pi]] 
+qoi_hist_info = [[200, -R, R]] 
 
 # initial state
 x0 = ones(d)  
