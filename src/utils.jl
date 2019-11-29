@@ -37,21 +37,26 @@ end
 # Solve algebraic equations for given parameters p, with path tracking.
 # Note that random number generators are probably NOT used in this function!
 function find_solutions_by_tracking(p_current)
-    # Create an empty array.
-    Gp = [subs(f, p => p_current) for f in F]
-    R = HomotopyContinuation.solve(F_p, Gp, S_p0)
-    S_p = solutions(R, only_real=true, only_nonsingular=true)
-#    println("result=", S_p)
-#=
     S_p = similar(S_p0, 0)
     for s in S_p0
        result = track(tracker, s; target_parameters=p_current, accuracy=1e-8)
         # check that the tracking was successfull
-       if issuccess(result) 
+       if is_success(result) 
 	 push!(S_p, solution(result))
        end
     end
-=#
+    return S_p
+end
+
+# Solve algebraic equations for given parameters p, with Start-End homotopy.
+#
+# Notice that there are several issues related to this homotopy:
+# 1) It is slower than PathTracking. 2) It requires more memory. 3) It uses random number. 
+
+function find_solutions_by_start_end_homotopy(p_current)
+    Gp = [subs(f, p => p_current) for f in F]
+    R = HomotopyContinuation.solve(F_p, Gp, S_p0, show_progress=false)
+    S_p = solutions(R, only_real=true, only_nonsingular=true)
     return S_p
 end
 
@@ -78,7 +83,11 @@ end
 function find_multiple_solutions(x_tmp, grad_xi_vec)
   p_current = vcat(x_tmp, reshape(transpose(grad_xi_vec), length(grad_xi_vec), 1)[:,1])
   if solve_multiple_solutions_by_homotopy == 1 
-    roots_vec = find_solutions_by_tracking(p_current)
+    if homotopy_by_tracking == 1
+      roots_vec = find_solutions_by_tracking(p_current)
+    else
+      roots_vec = find_solutions_by_start_end_homotopy(p_current)
+    end
   else #instead of using HomotopyContinuation, we use PolynomialRoots package (for k=1)
     # compute the coefficients of polynomial 
     poly = subs(F, p => p_current)

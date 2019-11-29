@@ -180,6 +180,8 @@ function rand_draw_velocity(x)
   return U_x * coeff / sqrt(beta)
 end
 
+start_runtime = time()
+
 # array to store the samples 
 sample_data_vec = []
 forward_success_counter = 0
@@ -254,27 +256,21 @@ if solve_multiple_solutions_frequency > 0
     # Compute all solutions for F_p .
     # According to the package's usage, Total Degree Homotopy is used.
     # Note that random number generators are used inside this function.
+    @time begin
     result_p = HomotopyContinuation.solve(F_p)
     println("\nResult of start system = ", result_p)
-    S_p0 = solutions(result_p)
-#=
-    #Construct the PathTracker
-    global tracker = pathtracker(F; parameters=p, generic_parameters=p0, accuracy_eg=1e-9)
-    start_time = time()
-    p1 = randn(Complex{Float64}, (k+1)*d, 1)[:,1]
-    Gp = [subs(f, p => p1) for f in F]
-    for idx in 1:100
-    #  p1 = randn(Complex{Float64}, (k+1)*d, 1)[:,1]
-      println("idx=", idx)
-      rel = HomotopyContinuation.solve(F_p, Gp, S_p0)
-      println("rel=", rel)
-      flush(stdout)
+    S_p0 = solutions(result_p)[1:4]
     end
-    current_time = time()
-    println("time used: ", current_time - start_time)
 
-    exit(0)
-=#
+    if homotopy_by_tracking == 1
+      #Construct the PathTracker
+      @time begin
+      println("\nConstrucing path tracker starts... ")
+      global tracker = pathtracker(F; parameters=p, generic_parameters=p0, accuracy_eg=1e-6)
+      println("\nConstrucing path tracker ended.")
+      end
+    end
+
     num_sol_start_system = length(S_p0)
 
     if num_sol_start_system > 0
@@ -466,6 +462,11 @@ for i in 1:(max_no_sol+1)
     @printf("\t%d solutions: %d (%.1f%%)\n", i-1, stat_num_of_solution_backward[i], stat_num_of_solution_backward[i] * 100 / forward_success_counter)
   end
 end
+
+@printf("\nTotal Runtime = %.2fSec.\n", time() - start_runtime)
+
+# use a higher precision when writing to files!
+Base.show(io::IO, f::Float64)=@printf io "%.4f" f
 
 if output_sample_data_frequency > 0
   # write the recorded states to file

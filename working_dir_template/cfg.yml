@@ -38,6 +38,7 @@ solve_multiple_solutions_by_homotopy : 1
 # than this tolerance.
 new_sol_tol : 1e-6
 refine_by_newton_max_step : 1
+homotopy_by_tracking : 1
 
 # the tolerance used in PolynomialRoots 
 polyroot_solver_eps : 1e-12

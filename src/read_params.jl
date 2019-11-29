@@ -67,6 +67,8 @@ if solve_multiple_solutions_frequency > 0
   if solve_multiple_solutions_by_homotopy == 0
     # solve scalar constraint equation by PolynomialRoots package.
     polyroot_solver_eps = cfg_data["polyroot_solver_eps"]
+  else 
+    homotopy_by_tracking = cfg_data["homotopy_by_tracking"]
   end
 
   # if this flag is one, indices are chosen according to the 

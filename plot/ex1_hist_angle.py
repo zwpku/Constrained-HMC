@@ -39,8 +39,9 @@ def reference_density(idx) :
     true_density = [true_density[i] / norm_z for i in range(num_x)]
     return true_density
 
-job_id = 0
+job_id = 3
 working_dir_name = '../working_dir_task%d/' % job_id
+working_dir_name = '../working_dir_task%d-new/' % job_id
 #working_dir_name = '../working_dir_test/'
 dim = 3
 pot_id = 0
