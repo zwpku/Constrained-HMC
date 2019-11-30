@@ -3,19 +3,19 @@
 # ************************************
 
 # the reaction coordniate map \xi: \mathbb{R}^d -> \mathbb{R}^k
-d = 20
+d = 10
 k = 2
 
 beta = 1.0
 
 # parameters of the ellipse 
 R = 3.0
-c= 1.0
+c= 2.0
 
 # how many different quantities of interest (QoI) will be recorded
 num_qoi = 1
 # for each quantity of interest, it contains number of bins, lower and upper ranges of the histgram.
-qoi_hist_info = [[200, -R, R]] 
+qoi_hist_info = [[4, -0.5, 3.5]] 
 
 # initial state
 x0 = ones(d)  
@@ -36,7 +36,11 @@ end
 
 # quantity of interest
 function QoI(x)
-  return [x[1]]
+  idx = 1 * (x[1] > 0) + 2 * (x[2] > 0) + 3 * (x[3] > 0)
+  if idx == 6
+    idx = 0
+  end
+  return [idx]
 end
 
 # the ith component \xi_i of the map \xi.

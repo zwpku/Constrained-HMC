@@ -259,7 +259,7 @@ if solve_multiple_solutions_frequency > 0
     @time begin
     result_p = HomotopyContinuation.solve(F_p)
     println("\nResult of start system = ", result_p)
-    S_p0 = solutions(result_p)[1:4]
+    S_p0 = solutions(result_p)
     end
 
     if homotopy_by_tracking == 1

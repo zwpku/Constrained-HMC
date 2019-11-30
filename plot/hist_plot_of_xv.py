@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-working_dir_name = '../working_dir_ex3_test'
+working_dir_name = '../working_dir_ex4_test'
 job_id = 1
-dim = 3
+dim = 10
 lc = ['b', 'r', 'k', 'c', 'm', 'y']
 
 data_file_name = '%s/traj_data_%d.txt' % (working_dir_name, job_id)
@@ -20,7 +20,7 @@ for i in range(dim):
     plt.clf()
     plt.hist(xv_data[:, i], bins=100, density=True)
     fig.tight_layout()
-    out_fig_name = '%s/fig/hist_plot_x%d_%d.eps' % (working_dir_name, i, job_id)
+    out_fig_name = '%s/hist_plot_x%d_%d.eps' % (working_dir_name, i, job_id)
     fig.savefig(out_fig_name)
 
 # plot the velocity
@@ -29,6 +29,6 @@ for i in range(dim):
     plt.hist(xv_data[:,dim + i], bins=100, density=True)
 #    ax.legend(bbox_to_anchor=(0.5, 0, 0.5, 0.5))
     fig.tight_layout()
-    out_fig_name = '%s/fig/hist_plot_v%d_%d.eps' % (working_dir_name, i, job_id)
+    out_fig_name = '%s/hist_plot_v%d_%d.eps' % (working_dir_name, i, job_id)
     fig.savefig(out_fig_name)
 
