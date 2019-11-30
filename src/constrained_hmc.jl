@@ -265,9 +265,9 @@ if solve_multiple_solutions_frequency > 0
     if homotopy_by_tracking == 1
       #Construct the PathTracker
       @time begin
-      println("\nConstrucing path tracker starts... ")
+      println("\nConstrucing path tracker starts...")
       global tracker = pathtracker(F; parameters=p, generic_parameters=p0, accuracy_eg=1e-6)
-      println("\nConstrucing path tracker ended.")
+      println("Construcing path tracker ended.")
       end
     end
 
