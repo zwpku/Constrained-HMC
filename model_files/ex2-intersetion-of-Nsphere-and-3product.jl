@@ -13,9 +13,9 @@ R = 3.0
 c= 2.0
 
 # how many different quantities of interest (QoI) will be recorded
-num_qoi = 1
+num_qoi = 5
 # for each quantity of interest, it contains number of bins, lower and upper ranges of the histgram.
-qoi_hist_info = [[4, -0.5, 3.5]] 
+qoi_hist_info = [[4, -0.5, 3.5], [300, -3.0, 3.0], [300, -3.0, 3.0], [300, -3.0, 3.0], [300, -3.0, 3.0]] 
 
 # initial state
 x0 = ones(d)  
@@ -26,12 +26,14 @@ pj_vec = [[1.0], [0.4, 0.6], [0.2, 0.4, 0.4], [0.2, 0.3, 0.3, 0.2]]
 
 # potential in the target distribution
 function V(x)
- return 0.0
+ return 0.5 * (x[1]-0.6)^2
 end
 
 # gradient of potential V
 function grad_V(x)
-  return zeros(d)
+  tmp = zeros(d)
+  tmp[1] = x[1] - 0.6
+  return tmp
 end
 
 # quantity of interest
@@ -40,7 +42,7 @@ function QoI(x)
   if idx == 6
     idx = 0
   end
-  return [idx]
+  return [idx, x[1], x[2], x[3], x[4]]
 end
 
 # the ith component \xi_i of the map \xi.
