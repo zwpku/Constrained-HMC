@@ -15,7 +15,8 @@ N = int(1e5)
 fig, ax = plt.subplots(1, 1, sharey=True, gridspec_kw={'hspace': 0}, figsize=(10, 3))
 
 job_id = 1
-working_dir_name = '../working_dir_ex4_test/' 
+#working_dir_name = '../working_dir_ex2_test/' 
+working_dir_name = '../working_dir_ex2_homotopy_potential_test/' 
 qoi_data_file_name = '%s/qoi_data_%d.txt' % (working_dir_name, job_id)
 xv_data = np.loadtxt(qoi_data_file_name)
 len_data = len(xv_data)

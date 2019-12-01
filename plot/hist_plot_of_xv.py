@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-working_dir_name = '../working_dir_ex4_test'
+#working_dir_name = '../working_dir_ex2_homotopy_test'
+working_dir_name = '../working_dir_ex2_homotopy_potential_test'
+#working_dir_name = '../working_dir_ex2_homotopy50_potential_test'
 job_id = 1
 dim = 10
 lc = ['b', 'r', 'k', 'c', 'm', 'y']

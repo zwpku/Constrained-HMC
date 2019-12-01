@@ -5,7 +5,7 @@ import numpy as np
 import math
 
 job_id = 1
-working_dir_name = '../working_dir_ex4_test/' 
+working_dir_name = '../working_dir_ex2_homotopy50_potential_test/' 
 dim = 10
 beta = 1.0
 lc = ['b', 'r', 'k', 'c', 'm', 'y']
