@@ -23,17 +23,19 @@ for idx in range(3):
     xv_data = np.loadtxt(qoi_data_file_name, usecols=0)
     len_data = len(xv_data)
     print ("%d samples are loaded from: %s" % (len_data, qoi_data_file_name))
-    output_every_k = oft[idx]
-    num_data_to_plot = int(len_data / output_every_k)
-    xx = np.linspace(0, N, num_data_to_plot)
-    ax[idx].plot(xx, xv_data[0::output_every_k], '-', color='b', linewidth=1)
-    ax[idx].set_ylim([-0.5, 3.5])
-    ax[idx].set_yticks([0, 1, 2, 3])
-    ax[idx].set_yticklabels([0,1,2,3], fontsize=22)
-    ax[idx].set_xticks([0, N/2, N])
-    ax[idx].set_xticklabels([r'$0$', r'$5\times 10^6$', r'$10^7$'], fontsize=18)
-    ax[idx].set_title(scheme_name[idx], fontsize=18)
+    ind_vec = np.where(np.fabs(xv_data[:-1] - xv_data[1:])>0.5)[0] 
+    num_pc = len(ind_vec)
+    print("num of phase changes: %d" % num_pc)
 
-out_fig_name = './ex2_traj_phase.eps' 
-fig.savefig(out_fig_name)
+    counter = np.zeros((4,4))
+    for i in range(num_pc):
+        ii = int(xv_data[ind_vec[i]])
+        jj = int(xv_data[1 + ind_vec[i]])
+        counter[ii][jj] += 1
+
+    for i in range(4):
+        for j in range(4):
+            print("%.2e  " % (counter[i][j] * 1.0 / N), end="")
+        print(end="\n")
+
 
