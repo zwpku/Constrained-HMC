@@ -29,7 +29,7 @@ for idx in range(3):
     ax[idx].plot(xx, xv_data[0::output_every_k], '-', color='b', linewidth=1)
     ax[idx].set_ylim([-0.5, 3.5])
     ax[idx].set_yticks([0, 1, 2, 3])
-    ax[idx].set_yticklabels([0,1,2,3], fontsize=22)
+    ax[idx].set_yticklabels([r'$\mathcal{C}_0$',r'$\mathcal{C}_1$',r'$\mathcal{C}_2$',r'$\mathcal{C}_3$'], fontsize=22)
     ax[idx].set_xticks([0, N/2, N])
     ax[idx].set_xticklabels([r'$0$', r'$5\times 10^6$', r'$10^7$'], fontsize=18)
     ax[idx].set_title(scheme_name[idx], fontsize=18)
