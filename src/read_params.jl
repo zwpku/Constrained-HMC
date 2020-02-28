@@ -19,6 +19,9 @@ output_qoi_data_frequency = cfg_data["output_qoi_data_frequency"]
 # the stepsize \tau used in the proposal scheme
 step_size = cfg_data["step_size"] 
 
+# alpha in momentum update, when alpha=0, it is equivalent to MALA
+alpha = cfg_data["alpha"] 
+
 # tolerance error
 check_tol = cfg_data["check_tol"] 
 

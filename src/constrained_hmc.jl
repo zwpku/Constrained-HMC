@@ -13,7 +13,7 @@ include("read_params.jl")
 include("utils.jl")
 
 # compute several possible proposal states, at the current state (x,v)
-function forward_rattle(x, v, is_multiple_solution_step)
+function forward_rattle_with_momentum_reversal(x, v, is_multiple_solution_step)
   grad_pot_vec = grad_V(x)
   # this should be a (k x d) matrix
   grad_xi_vec = grad_xi(x, 1)
@@ -92,9 +92,10 @@ function forward_rattle(x, v, is_multiple_solution_step)
     lam_v = - inv(mat_v_tmp) * grad_xi_vec_1 * v_tmp 
     # compute the updated velocity v^1
     v_1 = v_tmp + transpose(grad_xi_vec_1) * lam_v
-    return n, pj, x_1, v_1
+    # note: we do momemtum reversal
+    return n, pj, x_1, -v_1
   end # no solutions are found, if we reach here
-  return 0, 0, x, v
+  return 0, 0, x, -v
 end
 
 #backward check, similar to the forward_rattle function.
@@ -166,7 +167,7 @@ function backward_check(x1, v1, x, v, is_multiple_solution_step)
   return backward_found_flag, n_back, pj_back
 end
 
-function rand_draw_velocity(x)
+function momentum_update(v, x)
   grad_xi_vec = grad_xi(x, 1)
   # generate the orthnormal basis of the tangent space
   U_x = nullspace(grad_xi_vec)
@@ -177,7 +178,7 @@ function rand_draw_velocity(x)
   end
   # generate normal Gaussian vector, as coefficients under the basis  
   coeff = randn(d-k)
-  return U_x * coeff / sqrt(beta)
+  return alpha * v + sqrt((1-alpha^2) / beta) * U_x * coeff 
 end
 
 start_runtime = time()
@@ -201,6 +202,9 @@ stat_num_of_solution_forward = zeros(max_no_sol+1)
 stat_num_of_solution_backward = zeros(max_no_sol+1)
 
 Base.show(io::IO, f::Float64)=@printf io "%.2f" f
+
+# starting from zero momentum
+v0 = 0
 
 # when the initial state is not on the level set
 if norm(xi(x0)) > check_tol 
@@ -318,8 +322,9 @@ for i in 1:N
     @printf("\n\tForward_success_counter = %d (%.1f%%)\n\tBackward_success_counter = %d (%.1f%%)\n", forward_success_counter, forward_success_counter * 100 / i, backward_success_counter, backward_success_counter * 100 / forward_success_counter)
     flush(stdout)
   end 
-  # first of all, randomly update the velocity 
-  v0 = rand_draw_velocity(x0)
+
+  # Step 1: update the momentum (or velocity)
+  v0 = momentum_update(v0, x0)
 
   if output_sample_data_frequency > 0 && i % output_sample_data_frequency == 0 
     # record the current state for output
@@ -352,8 +357,9 @@ for i in 1:N
     is_multiple_solution_step = 0
     global single_solution_step_counter += 1
   end
+  # Step 2: RATTLE with momentum reversal, and accept/reject
   # compute proposal states
-  n, pj, x1, v1 = forward_rattle(x0, v0, is_multiple_solution_step)
+  n, pj, x1, v1 = forward_rattle_with_momentum_reversal(x0, v0, is_multiple_solution_step)
   if n <= max_no_sol 
     stat_num_of_solution_forward[n+1] += 1
   else 
@@ -365,7 +371,7 @@ for i in 1:N
   # otherwise, if one solution has been found, do backward check
   forward_success_counter += 1 
   # reverse the velocity, and do backward check
-  found_flag, n_back, pj_back = backward_check(x1, -v1, x0, -v0, is_multiple_solution_step)
+  found_flag, n_back, pj_back = backward_check(x1, v1, x0, v0, is_multiple_solution_step)
   if n_back <= max_no_sol 
     stat_num_of_solution_backward[n_back+1] += 1
   else 
@@ -400,9 +406,10 @@ for i in 1:N
       continue
     end
   end
-# it is not necessary to flip the velocity, 
-# because the velocity will be redrawn at the begining of the next step
-#  v0 = -v0
+  # Step 3: do momentum reversal again
+  v0 = -v0
+  # Step 4: momentum update again (such that the whole scheme is reversiable upto momentum reversal. this step can be omitted.)
+  v0 = momentum_update(v0, x0)
 end
 # time end
 end
