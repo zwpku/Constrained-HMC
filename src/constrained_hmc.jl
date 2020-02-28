@@ -204,7 +204,7 @@ stat_num_of_solution_backward = zeros(max_no_sol+1)
 Base.show(io::IO, f::Float64)=@printf io "%.2f" f
 
 # starting from zero momentum
-v0 = 0
+v0 = zeros(d)
 
 # when the initial state is not on the level set
 if norm(xi(x0)) > check_tol 
