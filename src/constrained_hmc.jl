@@ -167,7 +167,7 @@ function backward_check(x1, v1, x, v, is_multiple_solution_step)
   return backward_found_flag, n_back, pj_back
 end
 
-function momentum_update(v, x)
+function momentum_update(v, x, full_update_flag)
   grad_xi_vec = grad_xi(x, 1)
   # generate the orthnormal basis of the tangent space
   U_x = nullspace(grad_xi_vec)
@@ -178,7 +178,11 @@ function momentum_update(v, x)
   end
   # generate normal Gaussian vector, as coefficients under the basis  
   coeff = randn(d-k)
-  return alpha * v + sqrt((1-alpha^2) / beta) * U_x * coeff 
+  if full_update_flag == 1
+    return  U_x * coeff / sqrt(beta)
+  else 
+    return alpha * v + sqrt((1-alpha^2) / beta) * U_x * coeff  
+  end
 end
 
 start_runtime = time()
@@ -203,8 +207,8 @@ stat_num_of_solution_backward = zeros(max_no_sol+1)
 
 Base.show(io::IO, f::Float64)=@printf io "%.2f" f
 
-# starting from zero momentum
-v0 = zeros(d)
+# starting from randomized momentum
+v0 = momentum_update(Nothing(), x0, 1)
 
 # when the initial state is not on the level set
 if norm(xi(x0)) > check_tol 
@@ -324,7 +328,7 @@ for i in 1:N
   end 
 
   # Step 1: update the momentum (or velocity)
-  v0 = momentum_update(v0, x0)
+  v0 = momentum_update(v0, x0, 0)
 
   if output_sample_data_frequency > 0 && i % output_sample_data_frequency == 0 
     # record the current state for output
@@ -408,7 +412,7 @@ for i in 1:N
   # Step 3: do momentum reversal again
   v0 = -v0
   # Step 4: momentum update again (such that the whole scheme is reversiable upto momentum reversal. this step can be omitted.)
-  v0 = momentum_update(v0, x0)
+  v0 = momentum_update(v0, x0, 0)
 end
 # time end
 end
