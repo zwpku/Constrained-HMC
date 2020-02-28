@@ -403,7 +403,6 @@ for i in 1:N
       end
       x0 = x1
       v0 = v1
-      continue
     end
   end
   # Step 3: do momentum reversal again
