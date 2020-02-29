@@ -181,7 +181,7 @@ function momentum_update(v, x, full_update_flag)
   if full_update_flag == 1
     return  U_x * coeff / sqrt(beta)
   else 
-    return alpha * v + sqrt((1-alpha^2) / beta) * U_x * coeff  
+    return alpha * v + sqrt((1.0-alpha^2) / beta) * U_x * coeff  
   end
 end
 
@@ -207,8 +207,6 @@ stat_num_of_solution_backward = zeros(max_no_sol+1)
 
 Base.show(io::IO, f::Float64)=@printf io "%.2f" f
 
-# starting from randomized momentum
-v0 = momentum_update(Nothing(), x0, 1)
 
 # when the initial state is not on the level set
 if norm(xi(x0)) > check_tol 
@@ -220,6 +218,9 @@ if norm(xi(x0)) > check_tol
   end
   @printf("New inial state, |xi(x0)|=%.2e\n\n", norm(xi(x0)))
 end
+
+# starting from randomized momentum
+v0 = momentum_update(Nothing(), x0, 1)
 
 # when mutilple solutions will be solved 
 if solve_multiple_solutions_frequency > 0
@@ -369,44 +370,42 @@ for i in 1:N
   else 
     @printf("Warning: No. of solutions in forward rattle (=%d) is larger than upper bound (=%d)!", n, max_no_sol)
   end
-  if n == 0 # no solution
-    continue
-  end
-  # otherwise, if one solution has been found, do backward check
-  forward_success_counter += 1 
-  # reverse the velocity, and do backward check
-  found_flag, n_back, pj_back = backward_check(x1, v1, x0, v0, is_multiple_solution_step)
-  if n_back <= max_no_sol 
-    stat_num_of_solution_backward[n_back+1] += 1
-  else 
-    @printf("Warning: No. of solutions in backward check (=%d) is larger than upper bound (=%d)!", n_back, max_no_sol)
-  end
-  if found_flag == 1 # if the backward check is passed 
-    backward_success_counter += 1
-    if is_multiple_solution_step == 1
-      global backward_success_counter_in_multiple_step += 1
+  if n > 0 # if one solution has been found, do backward check
+    forward_success_counter += 1 
+    # reverse the velocity, and do backward check
+    found_flag, n_back, pj_back = backward_check(x1, v1, x0, v0, is_multiple_solution_step)
+    if n_back <= max_no_sol 
+      stat_num_of_solution_backward[n_back+1] += 1
+    else 
+      @printf("Warning: No. of solutions in backward check (=%d) is larger than upper bound (=%d)!", n_back, max_no_sol)
     end
-    h = energy(x0, v0) 
-    h_1 = energy(x1, v1) 
-#      @printf("n=%d, pj = %.3f n_back=%d, pj_back=%.3f\n", n, pj, n_back, pj_back)
-    # compute the MH-rate
-    mh_rate = min(1.0, exp(beta * (h - h_1)) * pj_back / pj)
-    r = rand()
-    if r < mh_rate # accept the proposal
-      stat_success_counter += 1
-      stat_average_distance += norm(x1-x0)
-      if x1[1] * x0[1] < 0 # change the sign
-        global stat_large_jump_counter += 1
-      end
+    if found_flag == 1 # if the backward check is passed 
+      backward_success_counter += 1
       if is_multiple_solution_step == 1
-        global stat_average_jump_dist_in_multiple_sol_step += norm(x1-x0)
-	global stat_success_counter_in_multiple_sol_step += 1
-	if x1[1] * x0[1] < 0 # change the sign
-	  global stat_large_jump_counter_in_multiple_sol_step += 1
-	end
+	global backward_success_counter_in_multiple_step += 1
       end
-      x0 = x1
-      v0 = v1
+      h = energy(x0, v0) 
+      h_1 = energy(x1, v1) 
+  #      @printf("n=%d, pj = %.3f n_back=%d, pj_back=%.3f\n", n, pj, n_back, pj_back)
+      # compute the MH-rate
+      mh_rate = min(1.0, exp(beta * (h - h_1)) * pj_back / pj)
+      r = rand()
+      if r < mh_rate # accept the proposal
+	stat_success_counter += 1
+	stat_average_distance += norm(x1-x0)
+	if x1[1] * x0[1] < 0 # change the sign
+	  global stat_large_jump_counter += 1
+	end
+	if is_multiple_solution_step == 1
+	  global stat_average_jump_dist_in_multiple_sol_step += norm(x1-x0)
+	  global stat_success_counter_in_multiple_sol_step += 1
+	  if x1[1] * x0[1] < 0 # change the sign
+	    global stat_large_jump_counter_in_multiple_sol_step += 1
+	  end
+	end
+	x0 = x1
+	v0 = v1
+      end
     end
   end
   # Step 3: do momentum reversal again
