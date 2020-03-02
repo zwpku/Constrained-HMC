@@ -204,9 +204,9 @@ stat_average_xi = 0
 
 stat_num_of_solution_forward = zeros(max_no_sol+1)
 stat_num_of_solution_backward = zeros(max_no_sol+1)
+stat_num_of_solution_forward_backward = zeros(max_no_sol+1, max_no_sol+1)
 
 Base.show(io::IO, f::Float64)=@printf io "%.2f" f
-
 
 # when the initial state is not on the level set
 if norm(xi(x0)) > check_tol 
@@ -314,7 +314,7 @@ start_time = time()
 @time begin
 # the main loop 
 for i in 1:N
-  global x0, v0, forward_success_counter, backward_success_counter, stat_success_counter, stat_num_of_solution_forward, stat_num_of_solution_backward, stat_average_distance, stat_average_xi 
+  global x0, v0, forward_success_counter, backward_success_counter, stat_success_counter, stat_num_of_solution_forward, stat_num_of_solution_backward, stat_average_distance, stat_average_xi, stat_num_of_solution_forward_backward
 
   # statistics
   stat_average_xi += norm(xi(x0))
@@ -376,6 +376,7 @@ for i in 1:N
     found_flag, n_back, pj_back = backward_check(x1, v1, x0, v0, is_multiple_solution_step)
     if n_back <= max_no_sol 
       stat_num_of_solution_backward[n_back+1] += 1
+      stat_num_of_solution_forward_backward[n+1,n_back+1] += 1
     else 
       @printf("Warning: No. of solutions in backward check (=%d) is larger than upper bound (=%d)!", n_back, max_no_sol)
     end
@@ -469,6 +470,16 @@ println("\nNo. of solutions in backward check:")
 for i in 1:(max_no_sol+1)
   if stat_num_of_solution_backward[i] > 0
     @printf("\t%d solutions: %d (%.1f%%)\n", i-1, stat_num_of_solution_backward[i], stat_num_of_solution_backward[i] * 100 / forward_success_counter)
+  end
+end
+
+println("\nNo. of solutions forward-backward:")
+for i in 1:max_no_sol
+  @printf("When %d solutions in forward:\n", i)
+  for j in 1:(max_no_sol+1)
+    if stat_num_of_solution_forward_backward[i+1,j] > 0
+      @printf("\t%d solutions in backward check: %d (%.1f%%)\n", j-1, stat_num_of_solution_forward_backward[i+1,j], stat_num_of_solution_forward_backward[i+1,j] * 100 / N)
+    end
   end
 end
 
