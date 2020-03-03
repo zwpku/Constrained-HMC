@@ -45,7 +45,7 @@ R = 1.0
 r = 0.5
 beta = 20.0
 
-pot_id = 1
+pot_id = 0
 
 lc = ['k', 'r', 'k', 'c', 'm', 'y', 'y']
 ls = ['--', '--', '--', '--', '--', '--', '--']
@@ -69,6 +69,7 @@ for angle_idx in range(2):
     for j_idx in range(len(job_idx_vec)):
         job_id = job_idx_vec[j_idx]
         working_dir_name = '../working_dir_task%d/' % (job_id)
+#        working_dir_name = '../working_dir_ex1-alpha0.5-task%d/' % (job_id)
 
         data_file_name = '%s/qoi_counter_%d.txt' % (working_dir_name, job_id)
         infile = open(data_file_name, 'r')

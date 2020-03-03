@@ -39,12 +39,12 @@ def reference_density(idx) :
     true_density = [true_density[i] / norm_z for i in range(num_x)]
     return true_density
 
-job_id = 1
+job_id = 10
 #working_dir_name = '../working_dir_task%d-dt1.0/' % job_id
-#working_dir_name = '../working_dir_task%d-new/' % job_id
-working_dir_name = '../working_dir_ex1-alpha0.5-task%d/' % job_id
+working_dir_name = '../working_dir_task%d/' % job_id
+#working_dir_name = '../working_dir_ex1-alpha0.5-task%d/' % job_id
 dim = 3
-pot_id = 0
+pot_id = 1
 output_every_k = 1
 R = 1.0
 r = 0.5
@@ -73,7 +73,7 @@ for idx in range(num_qoi):
 
     plt.xticks([0, math.pi/2, math.pi, math.pi * 3.0 /2, 2.0 * math.pi], ['0', r'$\pi/2$', r'$\pi$', r'$3\pi/2$', r'$2\pi$'], fontsize=22)
     plt.yticks(fontsize=18)
-    plt.gca().set_ylim(0.0, 0.3)
+#    plt.gca().set_ylim(0.0, 4.0)
     plt.legend(bbox_to_anchor=(0.3, 0.5, 0.5, 0.5), fontsize=18)
     fig.tight_layout()
     out_fig_name = '%s/hist_3dtorus_job%d_%dth.eps' % (working_dir_name, job_id, idx)

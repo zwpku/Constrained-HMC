@@ -5,7 +5,7 @@ import numpy as np
 import math
 
 dim = 3
-output_every_k = [1, 1800, 1800]
+output_every_k = [1, 3000, 3000]
 lc = ['k', 'r', 'k', 'c', 'm', 'y']
 ls = ['--', '--', '--', '--', '--', '--', '--']
 mks= ['+', 's', 'o', 'x', 'v', 'D', 'h']
@@ -22,6 +22,7 @@ fig, ax = plt.subplots(1, num_jobs, sharey=True, gridspec_kw={'hspace': 0}, figs
 for idx in range(num_jobs):
     job_id = job_idx_vec[idx]
     working_dir_name = '../working_dir_task%d/' % job_id
+#    working_dir_name = '../working_dir_ex1-alpha0.5-task%d/' % job_id
     qoi_data_file_name = '%s/qoi_data_%d.txt' % (working_dir_name, job_id)
     xv_data = np.loadtxt(qoi_data_file_name)
     len_data = len(xv_data[:,0])
