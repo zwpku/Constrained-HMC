@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-job_id = 1
-working_dir_name = '../working_dir_ex3_test'
+job_id = 2
+working_dir_name = '../working_dir_ex1-alpha0.2-task2'
 dim = 3
-output_every_k = 50
+output_every_k = 1
 lc = ['b', 'r', 'k', 'c', 'm', 'y']
 
 data_file_name = '%s/traj_data_%d.txt' % (working_dir_name, job_id)
@@ -28,12 +28,10 @@ for i in range(dim):
     out_fig_name = '%s/traj_plot_x%d_%d.eps' % (working_dir_name, i, job_id)
     fig.savefig(out_fig_name)
 
-"""
 # plot the velocity
 for i in range(dim):
     plt.clf()
     plt.plot(xv_data[::output_every_k,dim + i], color=lc[i], linestyle='-', label='v_%d' % i)
     fig.tight_layout()
-    out_fig_name = '%s/fig/traj_plot_v%d_%d.eps' % (working_dir_name, i, job_id)
+    out_fig_name = '%s/traj_plot_v%d_%d.eps' % (working_dir_name, i, job_id)
     fig.savefig(out_fig_name)
-"""

@@ -6,7 +6,7 @@ import math
 
 job_id = 1
 N = int(1e7)
-working_dir_vec = ['../working_dir_ex2_newton_test/', '../working_dir_ex2_homotopy_potential_test/', '../working_dir_ex2_homotopy10_potential_test/']
+working_dir_vec = ['../working_dir_ex2_newton_test-new/', '../working_dir_ex2_homotopy_potential_test-new/', '../working_dir_ex2_homotopy10_potential_test-new/']
 dim = 10
 lc = ['k', 'r', 'k', 'c', 'm', 'y']
 mks= [None, '^', 'x', 'o', 'x', 'v', '^']
