@@ -1,5 +1,5 @@
 # Constrained-HMC
-Monte Carlo sampler on submanifolds
+Hybrid Monte Carlo (HMC) sampler on submanifolds
 
 ## Preparation
 #### 1. Install the following dependent Julia libraries. 

@@ -16,7 +16,7 @@ degree_polynomial_constraint : 4
 step_size : 0.5
 
 # coefficient in momentum update, alpha=0 gives MALA
-alpha = 0.2
+alpha : 0.2
 
 # check the forward scheme and print information, if the flag equals 1.
 check_rattle_flag : 1
